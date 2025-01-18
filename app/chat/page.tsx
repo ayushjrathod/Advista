@@ -1,5 +1,6 @@
 "use client";
 
+import { BackgroundBeams } from "@/components/ui/background-beams";
 import { Card } from "@/components/ui/card"; // Import Card component from shadcn
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
@@ -142,9 +143,9 @@ export default function ChatBot() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-black text-white">
+    <div className=" flex flex-col h-screen bg-black text-white">
       <ScrollArea className="flex-1 px-4 py-6">
-        <div className="max-w-2xl mx-auto space-y-4">
+        <div className="max-w-4xl bg-gradient-to-r p-2 rounded-xl from-gray-800 to-gray-950  h-screen mx-auto space-y-4">
           {messages.map((m) => (
             <div
               key={m.id}
@@ -163,7 +164,7 @@ export default function ChatBot() {
                     : "border-zinc-800/20 bg-gradient-to-br from-zinc-950/90 to-zinc-900/70"
                 )}
               >
-                <p className="text-sm leading-relaxed whitespace-pre-wrap">{m.content}</p>
+                <p className="text-base leading-relaxed whitespace-pre-wrap">{m.content}</p>
               </div>
               {m.role === "user" && (
                 <div className="w-8 h-8 rounded-full border border-zinc-700/30 text-white flex items-center justify-center">
@@ -203,7 +204,7 @@ export default function ChatBot() {
           <div ref={messagesEndRef} />
         </div>
       </ScrollArea>
-      <div className="border-t border-zinc-800 w-full">
+      <div className="z-10 w-full">
         <form onSubmit={onSubmit} className="max-w-2xl mx-auto p-4 w-full">
           <div className="relative rounded-full overflow-hidden bg-zinc-900 border border-zinc-800 shadow-xl">
             <input
@@ -216,7 +217,6 @@ export default function ChatBot() {
             <div className="absolute right-1 top-[0.2em]">
               <button
                 type="submit"
-                disabled={isLoading || input.trim() === "" || chatComplete}
                 className="w-10 h-10 rounded-full bg-violet-600 hover:bg-violet-500 group shadow-xl flex items-center justify-center relative overflow-hidden"
               >
                 <svg
@@ -254,6 +254,7 @@ export default function ChatBot() {
           </div>
         </form>
       </div>
+      <BackgroundBeams />
     </div>
   );
 }

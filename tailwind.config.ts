@@ -1,4 +1,6 @@
 import type { Config } from "tailwindcss";
+const colors = require("tailwindcss/colors");
+const { default: flattenColorPalette } = require("tailwindcss/lib/util/flattenColorPalette");
 
 const config: Config = {
   darkMode: ["class"],
@@ -59,6 +61,9 @@ const config: Config = {
           "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
+          // New colors
+          secondary: "hsl(var(--sidebar-secondary))",
+          "secondary-foreground": "hsl(var(--sidebar-secondary-foreground))",
         },
       },
       borderRadius: {
@@ -68,6 +73,20 @@ const config: Config = {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [require("tailwindcss-animate"), addVariablesForColors],
 };
+
+function addVariablesForColors({ addBase, theme }: any) {
+  let allColors = flattenColorPalette(theme("colors"));
+  let newVars = Object.fromEntries(Object.entries(allColors).map(([key, val]) => [`--${key}`, val]));
+
+  addBase({
+    ":root": newVars,
+    // Add new sidebar colors
+    ".sidebar-secondary": {
+      "--sidebar-secondary": theme("colors.sidebar.secondary"),
+      "--sidebar-secondary-foreground": theme("colors.sidebar.secondary-foreground"),
+    },
+  });
+}
 export default config;
