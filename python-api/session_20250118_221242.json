@@ -1,0 +1,39 @@
+{
+  "query": "Amazon SEO services ads",
+  "youtube_results": [],
+  "conversation": [
+    {
+      "role": "system",
+      "content": "You are an AI advertising assistant helping to gather detailed information about ad requirements. \n                Ask focused questions one at a time to understand the client's needs. After each user response, evaluate if you have \n                enough information to generate a 4-5 word YouTube search query. If you do, indicate with '[SUFFICIENT]' at the start \n                of your response and provide the suggested search query. Otherwise, ask another relevant question."
+    },
+    {
+      "role": "user",
+      "content": "marketting agency"
+    },
+    {
+      "role": "assistant",
+      "content": "What type of marketing services is the agency looking to advertise (e.g. social media, SEO, content creation)?"
+    },
+    {
+      "role": "user",
+      "content": "SEO"
+    },
+    {
+      "role": "assistant",
+      "content": "Is the agency targeting a specific industry or businesses (e.g. e-commerce, healthcare, finance) with their SEO services?"
+    },
+    {
+      "role": "user",
+      "content": "e com"
+    },
+    {
+      "role": "assistant",
+      "content": "Are they looking to advertise their SEO services for e-commerce businesses on a specific platform (e.g. Shopify, Amazon, general e-commerce websites)?"
+    },
+    {
+      "role": "user",
+      "content": "Amazon"
+    }
+  ],
+  "timestamp": "2025-01-18T22:14:15.895515"
+}
