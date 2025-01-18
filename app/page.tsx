@@ -1,7 +1,6 @@
 "use client";
 import { About } from "@/components/about";
 import GlowingButton from "@/components/githubButton";
-import HeroButton from "@/components/heroButton";
 import { FloatingNav } from "@/components/ui/floating-navbar";
 import { Footer } from "@/components/ui/footer";
 import { PlaceholdersAndVanishInput } from "@/components/ui/placeholders-and-vanish-input";
@@ -38,8 +37,10 @@ export default function Home() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row items-center justify-between">
           <div className="text-left lg:w-1/2 mb-8 lg:mb-0">
             <GlowingButton />
-            <h1 className="pt-6 text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-4">Welcome to the Future</h1>
-            <p className="text-xl sm:text-2xl md:text-3xl text-gray-400 mb-8">Explore our innovative 3D experiences</p>
+            <h1 className="pt-6 text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-4">Welcome to advista </h1>
+            <p className="text-xl sm:text-2xl md:text-2xl text-gray-400 mb-8 mx-2">
+              AI-powered research. Human-centered insights
+            </p>
 
             <div className="flex flex-col">
               <div className="my-4">
@@ -49,9 +50,9 @@ export default function Home() {
                   onSubmit={(e) => handleSubmit(e)}
                 />
               </div>
-              <div className="flex justify-center w-full">
+              {/* <div className="flex justify-center w-full">
                 <HeroButton />
-              </div>
+              </div> */}
             </div>
           </div>
           {/* <SplineComponent /> */}
