@@ -18,9 +18,7 @@
 
 ### Project Description: What we did as a solution
 
-lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec auctor, nunc nec
-consectetur ultricies, nunc nunc ultricies nunc, nec consectetur ultricies nunc
-nunc ultricies nunc, nec consectetur ultricies nunc nunc ultricies nunc, nec
+ADVISTA is a solution that identifies user pain points and triggers from multiple data sources like Google, YouTube, Reddit, Quora, blogs, forums, social media, and app reviews. It analyzes competitor ads and strategies to uncover high-performing hooks, CTAs, and content formats based on the target audience, ad objectives, and ad formats. It scrapes data from across the internet, summarizes key triggers and user problems, and suggests the best-performing hooks, CTAs, and solutions tailored to the topic and audience. ADVISTA also provides direct links to scraped YouTube videos and competitor ads for easy validation and inspiration. It visualizes insights with word clouds and includes a chatbot to help generate CTAs and hooks.
 
 ### Getting Started
 
