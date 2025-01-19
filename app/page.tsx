@@ -1,31 +1,14 @@
-"use client";
 import { About } from "@/components/about";
 import GlowingButton from "@/components/githubButton";
+import HeroButton from "@/components/heroButton";
 import SmokeSceneComponent from "@/components/SmokeSceneComponent";
 import SplineComponent from "@/components/SplineComponent";
 import { FloatingNav } from "@/components/ui/floating-navbar";
 import { Footer } from "@/components/ui/footer";
-import { PlaceholdersAndVanishInput } from "@/components/ui/placeholders-and-vanish-input";
 import { HomeIcon } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import Link from "next/link";
 
 export default function Home() {
-  // const { data: session } = useSession();
-  // const user: User = session?.user as User;
-  // const router = useRouter();
-
-  // if (!user) {
-  //   router.push("/sign-in");
-  //   return null;
-  // }
-  const router = useRouter();
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    router.push(`/chat?input=${encodeURIComponent(input)}`);
-  };
-
-  const [input, setInput] = useState("");
   const navItems = [
     { name: "Home", link: "/", icon: <HomeIcon /> },
     { name: "About", link: "/about" },
@@ -45,16 +28,9 @@ export default function Home() {
             </p>
 
             <div className="flex flex-col">
-              <div className="my-4">
-                <PlaceholdersAndVanishInput
-                  placeholders={["Enter your email", "Enter your password"]}
-                  onChange={(e) => setInput(e.target.value)}
-                  onSubmit={(e) => handleSubmit(e)}
-                />
-              </div>
-              {/* <div className="flex justify-center w-full">
+              <Link href="/chat?input=hi">
                 <HeroButton />
-              </div> */}
+              </Link>
             </div>
           </div>
           <SplineComponent />
