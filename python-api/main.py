@@ -11,6 +11,8 @@ import os
 from scripts import search_youtube_videos,refine_ad_requirements,get_chat_response
 from video_processor import VideoProcessor
 import aiofiles
+from db import AstraDB
+from fastapi.responses import StreamingResponse
 
 app = FastAPI()
 
@@ -33,14 +35,20 @@ class ChatResponse(BaseModel):
     session_id: str
     youtube_results: Optional[List[dict]] = None
     processed: bool = False
+    similar_search: Optional[Dict] = None  # Add this field
 
-# Store session data
-session_data = {}
 # Store active conversations
 active_conversations = {}
 
 # Add logger
 logger = logging.getLogger(__name__)
+
+# Initialize database with error handling
+try:
+    db = AstraDB()
+except Exception as e:
+    logger.error(f"Failed to initialize database: {e}")
+    raise
 
 @app.post("/chat/start")
 async def start_chat():
@@ -71,120 +79,139 @@ async def chat_message(chat_input: ChatInput):
     if not chat_input.session_id or chat_input.session_id not in active_conversations:
         raise HTTPException(status_code=400, detail="Invalid or missing session ID")
     
-    conversation = active_conversations[chat_input.session_id]["conversation"]
-    
-    # Add user message
-    conversation.append({"role": "user", "content": chat_input.message})
-    
-    # Get AI response
-    client = AsyncGroq(api_key=os.getenv('GROQ_API_KEY'))
-    response = await get_chat_response(client, conversation)
-    
-    # Check if we have sufficient information
-    is_complete = '[SUFFICIENT]' in response
-    
-    if is_complete:
-        # Generate search query and get YouTube results
-        search_query = response.split('[SUFFICIENT]')[1].strip()
-        youtube_results = search_youtube_videos(query=search_query)
+    try:
+        conversation = active_conversations[chat_input.session_id]["conversation"]
+        conversation.append({"role": "user", "content": chat_input.message})
         
-        # Store initial results immediately
-        session_data[chat_input.session_id] = {
-            "query": search_query,
-            "youtube_results": youtube_results,
-            "conversation": conversation,
-            "timestamp": datetime.now().isoformat(),
-            "processed": False
-        }
+        client = AsyncGroq(api_key=os.getenv('GROQ_API_KEY'))
+        response = await get_chat_response(client, conversation)
         
-        # First, send the initial response with YouTube results
-        initial_response = {
-            "message": response,
-            "is_complete": is_complete,
-            "session_id": chat_input.session_id,
-            "youtube_results": youtube_results,
-            "processed": False
-        }
+        is_complete = '[SUFFICIENT]' in response
         
-        # Start video processing in background
-        asyncio.create_task(process_videos_background(
-            chat_input.session_id, 
-            search_query, 
-            youtube_results, 
-            conversation
-        ))
-        
-        await save_session_data(chat_input.session_id, session_data[chat_input.session_id])
-        return initial_response
-    else:
-        conversation.append({"role": "assistant", "content": response})
-        return {
-            "message": response,
-            "is_complete": is_complete,
-            "session_id": chat_input.session_id,
-            "youtube_results": None,
-            "processed": False
-        }
+        if is_complete:
+            search_query = response.split('[SUFFICIENT]')[1].strip()
+            
+            # Check for similar existing searches
+            similar_search = await db.find_similar_search(search_query)
+            if (similar_search and similar_search.get("processed")):
+                return {
+                    "message": f"{response}\n\nI found similar existing results that might be helpful!",
+                    "is_complete": True,
+                    "session_id": chat_input.session_id,
+                    "youtube_results": similar_search.get("youtube_results", []),
+                    "processed": True,
+                    "similar_search": similar_search
+                }
+            
+            # If no similar search found, continue with new search
+            youtube_results = search_youtube_videos(query=search_query)
+            await db.save_session(chat_input.session_id, search_query, youtube_results)
+            
+            # Start video and Reddit data processing in background
+            asyncio.create_task(process_videos_background(
+                chat_input.session_id, 
+                search_query, 
+                youtube_results, 
+                conversation
+            ))
+            
+            # Also save Reddit data for the search query
+            asyncio.create_task(db.save_reddit_data(
+                chat_input.session_id,
+                search_query
+            ))
+            
+            return {
+                "message": response,
+                "is_complete": is_complete,
+                "session_id": chat_input.session_id,
+                "youtube_results": youtube_results,
+                "processed": False,
+                "similar_search": None
+            }
+        else:
+            conversation.append({"role": "assistant", "content": response})
+            return {
+                "message": response,
+                "is_complete": is_complete,
+                "session_id": chat_input.session_id,
+                "youtube_results": None,
+                "processed": False,
+                "similar_search": None
+            }
+    except Exception as e:
+        logger.error(f"Error in chat_message: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 async def process_videos_background(session_id: str, search_query: str, youtube_results: List[dict], conversation: List[dict]):
     """Process videos in background and save results"""
     try:
-        processor = VideoProcessor()
-        processed_results = await processor.process_videos(youtube_results)
+        processor = VideoProcessor(db)
         
-        # Update existing session data
-        if session_id in session_data:
-            session_data[session_id].update({
-                "processed_results": processed_results,
-                "processed": True
-            })
-            
-            # Save updated data
-            await save_session_data(session_id, session_data[session_id])
-            
+        processed_results = await asyncio.gather(*[
+            processor.process_single_video(video, session_id) 
+            for video in youtube_results
+        ])
+        
+        processed_results = [r for r in processed_results if r is not None]
+        
+        # Update session as processed using searches collection
+        if processed_results:
+            loop = asyncio.get_event_loop()
+            await loop.run_in_executor(
+                None,
+                lambda: db.searches.find_one_and_update(
+                    {"_id": session_id},
+                    {"$set": {"processed": True}}
+                )
+            )
+        
         # Clean up active conversation
         if session_id in active_conversations:
             del active_conversations[session_id]
             
     except Exception as e:
         logger.error(f"Error processing videos: {str(e)}")
-        if session_id in session_data:
-            session_data[session_id]["error"] = str(e)
-            await save_session_data(session_id, session_data[session_id])
 
 @app.get("/results/{session_id}")
 async def get_results(session_id: str):
-    """Get the final results for a completed chat session"""
-    if session_id not in session_data:
-        raise HTTPException(status_code=404, detail="Session not found")
-    
-    # Load from file if not in memory
-    if not session_data.get(session_id):
-        try:
-            filename = f"session_{session_id}.json"
-            async with aiofiles.open(filename, "r") as f:
-                content = await f.read()
-                session_data[session_id] = json.loads(content)
-        except FileNotFoundError:
-            raise HTTPException(status_code=404, detail="Session data not found")
-    
-    return session_data[session_id]
+    # Updated to use get_search instead of get_session
+    result = await db.get_search(session_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="Search not found")
+    return result
 
-@app.get("/sessions/{session_id}")
-async def get_session(session_id: str):
-    if session_id not in session_data:
-        raise HTTPException(status_code=404, detail="Session not found")
-    return session_data[session_id]
+# Add new streaming endpoint
+@app.get("/reddit-analysis-stream/{session_id}")
+async def stream_reddit_analysis(session_id: str):
+    """Stream Reddit analysis as it's being generated"""
+    try:
+        search = await db.get_search(session_id)
+        if not search:
+            raise HTTPException(status_code=404, detail="Search not found")
 
-@app.get("/sessions/")
-async def list_sessions():
-    return {"sessions": list(session_data.keys())}
+        # If we already have the analysis, return it immediately
+        if search.get("reddit_groq_insight"):
+            return StreamingResponse(
+                iter([f"data: {json.dumps({'analysis': search['reddit_groq_insight']})}\n\n"]),
+                media_type="text/event-stream"
+            )
 
-# Update save_session_data to be async
-async def save_session_data(session_id: str, data: dict):
-    filename = f"session_{session_id}.json"
-    async with aiofiles.open(filename, "w") as f:
-        await f.write(json.dumps(data, indent=2))
+        # Otherwise get fresh analysis
+        async def generate():
+            analysis = await db.get_reddit_analysis_stream(search["query"])
+            if analysis:
+                yield f"data: {json.dumps({'analysis': analysis})}\n\n"
+                # Save the analysis for future use
+                await db.save_reddit_data(session_id, search["query"])
+
+        return StreamingResponse(
+            generate(),
+            media_type="text/event-stream"
+        )
+    except Exception as e:
+        logger.error(f"Error streaming Reddit analysis: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     import uvicorn

@@ -5,6 +5,7 @@ venv
 ./python-api/downloaded_videos
 session_*.json
 __pycache__
+/chat/page.tsx
 
 
 # dependencies
