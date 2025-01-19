@@ -1,6 +1,8 @@
 "use client";
 import { About } from "@/components/about";
 import GlowingButton from "@/components/githubButton";
+import SmokeSceneComponent from "@/components/SmokeSceneComponent";
+import SplineComponent from "@/components/SplineComponent";
 import { FloatingNav } from "@/components/ui/floating-navbar";
 import { Footer } from "@/components/ui/footer";
 import { PlaceholdersAndVanishInput } from "@/components/ui/placeholders-and-vanish-input";
@@ -32,7 +34,7 @@ export default function Home() {
   return (
     <div className="relative min-h-screen bg-black">
       <FloatingNav className="" navItems={navItems} />
-      {/* <SmokeSceneComponent /> */}
+      <SmokeSceneComponent />
       <main className="relative min-h-screen flex items-center bg-transparent">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row items-center justify-between">
           <div className="text-left lg:w-1/2 mb-8 lg:mb-0">
@@ -55,7 +57,7 @@ export default function Home() {
               </div> */}
             </div>
           </div>
-          {/* <SplineComponent /> */}
+          <SplineComponent />
         </div>
       </main>
       <div className="m-24">

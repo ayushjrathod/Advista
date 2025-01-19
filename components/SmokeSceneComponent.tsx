@@ -17,8 +17,8 @@ export default function SmokeSceneComponent() {
       <SmokeScene
         smoke={{
           color: smokeColor,
-          opacity: 0.5,
-          density: 20,
+          opacity: 0.6,
+          density: 25,
           enableRotation: true,
           enableWind: true,
           enableTurbulence: true,
