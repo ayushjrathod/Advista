@@ -1,6 +1,12 @@
 ## Team OutOfBounds
 
-#### Task 1: Automated Research and Trigger Finder (ART Finder
+#### Task 1: Automated Research and Trigger Finder (ART Finder)
+#### UI Demo
+[![UIdemo](https://img.youtube.com/vi/rJC_-6QHzKo/1.jpg)](https://www.youtube.com/watch?v=rJC_-6QHzKo)
+#### Project Demo
+[![UIdemo](https://img.youtube.com/vi/ikxR2ujRr5I/0.jpg)](https://www.youtube.com/watch?v=ikxR2ujRr5I)
+
+#### 
 
 #### Table of Contents
 
