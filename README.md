@@ -5,6 +5,9 @@
 [![UIdemo](https://img.youtube.com/vi/rJC_-6QHzKo/1.jpg)](https://www.youtube.com/watch?v=rJC_-6QHzKo)
 #### Project Demo
 [![UIdemo](https://img.youtube.com/vi/ikxR2ujRr5I/0.jpg)](https://www.youtube.com/watch?v=ikxR2ujRr5I)
+#### Intelligent pain point and trigger detection demo
+[![UIdemo](https://img.youtube.com/vi/M97WjHGASys/0.jpg)](https://www.youtube.com/watch?v=M97WjHGASys)
+
 
 #### 
 
