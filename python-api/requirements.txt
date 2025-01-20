@@ -89,3 +89,4 @@ uvicorn==0.34.0
 wordcloud==1.9.4
 xformers==0.0.29.post1
 yt-dlp==2025.1.15
+azure-identity
