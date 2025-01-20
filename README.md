@@ -1,6 +1,15 @@
 ## Team OutOfBounds
 
-#### Task 1: Automated Research and Trigger Finder (ART Finder
+#### Task 1: Automated Research and Trigger Finder (ART Finder)
+#### UI Demo
+[![UIdemo](https://img.youtube.com/vi/rJC_-6QHzKo/1.jpg)](https://www.youtube.com/watch?v=rJC_-6QHzKo)
+#### Project Demo
+[![UIdemo](https://img.youtube.com/vi/ikxR2ujRr5I/0.jpg)](https://www.youtube.com/watch?v=ikxR2ujRr5I)
+#### Intelligent pain point and trigger detection demo
+[![UIdemo](https://img.youtube.com/vi/M97WjHGASys/0.jpg)](https://www.youtube.com/watch?v=M97WjHGASys)
+
+
+#### 
 
 #### Table of Contents
 
@@ -12,9 +21,7 @@
 
 ### Project Description: What we did as a solution
 
-lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec auctor, nunc nec
-consectetur ultricies, nunc nunc ultricies nunc, nec consectetur ultricies nunc
-nunc ultricies nunc, nec consectetur ultricies nunc nunc ultricies nunc, nec
+ADVISTA is a solution that identifies user pain points and triggers from multiple data sources like Google, YouTube, Reddit, Quora, blogs, forums, social media, and app reviews. It analyzes competitor ads and strategies to uncover high-performing hooks, CTAs, and content formats based on the target audience, ad objectives, and ad formats. It scrapes data from across the internet, summarizes key triggers and user problems, and suggests the best-performing hooks, CTAs, and solutions tailored to the topic and audience. ADVISTA also provides direct links to scraped YouTube videos and competitor ads for easy validation and inspiration. It visualizes insights with word clouds and includes a chatbot to help generate CTAs and hooks.
 
 ### Getting Started
 
