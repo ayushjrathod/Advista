@@ -51,6 +51,7 @@ function ChatBotContent() {
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   const initializationDone = useRef(false); // Ref to track initialization
+  const backendUrl = "https://python-api-hqcubfc9eugmf4ch.westindia-01.azurewebsites.net/";
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -65,12 +66,12 @@ function ChatBotContent() {
     const initializeChat = async () => {
       try {
         setIsLoading(true);
-        const startResponse = await axios.post<StartChatResponse>("http://localhost:8000/chat/start");
+        const startResponse = await axios.post<StartChatResponse>(`${backendUrl}chat/start`);
         setSessionId(startResponse.data.session_id);
 
         if (initialMessage) {
           setMessages((prev) => [...prev, { id: Date.now(), role: "user", content: initialMessage }]);
-          const response = await axios.post<MessageResponse>("http://localhost:8000/chat/message", {
+          const response = await axios.post<MessageResponse>(`${backendUrl}chat/message`, {
             message: initialMessage,
             session_id: startResponse.data.session_id,
           });
@@ -100,7 +101,7 @@ function ChatBotContent() {
 
   const fetchReferences = async (session_id: string) => {
     try {
-      const response = await axios.get(`http://localhost:8000/results/${session_id}`);
+      const response = await axios.get(`${backendUrl}/results/${session_id}`);
       setReferences(response.data.youtube_results); // Assuming response contains youtube_results
     } catch (error) {
       console.error("Error fetching references:", error);
@@ -114,7 +115,7 @@ function ChatBotContent() {
 
     try {
       setIsLoading(true);
-      const response = await axios.post<MessageResponse>("http://localhost:8000/chat/message", {
+      const response = await axios.post<MessageResponse>(`${backendUrl}chat/message`, {
         message,
         session_id: sessionId,
       });
