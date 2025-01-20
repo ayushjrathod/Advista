@@ -66,15 +66,31 @@ function ChatBotContent() {
     const initializeChat = async () => {
       try {
         setIsLoading(true);
-        const startResponse = await axios.post<StartChatResponse>(`${backendUrl}chat/start`);
+        const startResponse = await axios.post<StartChatResponse>(
+          `${backendUrl}chat/start`,
+          {},
+          {
+            headers: {
+              "Access-Control-Allow-Origin": "*",
+            },
+          }
+        );
         setSessionId(startResponse.data.session_id);
 
         if (initialMessage) {
           setMessages((prev) => [...prev, { id: Date.now(), role: "user", content: initialMessage }]);
-          const response = await axios.post<MessageResponse>(`${backendUrl}chat/message`, {
-            message: initialMessage,
-            session_id: startResponse.data.session_id,
-          });
+          const response = await axios.post<MessageResponse>(
+            `${backendUrl}chat/message`,
+            {
+              message: initialMessage,
+              session_id: startResponse.data.session_id,
+            },
+            {
+              headers: {
+                "Access-Control-Allow-Origin": "*",
+              },
+            }
+          );
           setMessages((prev) => [
             ...prev,
             {
@@ -101,7 +117,11 @@ function ChatBotContent() {
 
   const fetchReferences = async (session_id: string) => {
     try {
-      const response = await axios.get(`${backendUrl}/results/${session_id}`);
+      const response = await axios.get(`${backendUrl}/results/${session_id}`, {
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+        },
+      });
       setReferences(response.data.youtube_results); // Assuming response contains youtube_results
     } catch (error) {
       console.error("Error fetching references:", error);
@@ -115,10 +135,18 @@ function ChatBotContent() {
 
     try {
       setIsLoading(true);
-      const response = await axios.post<MessageResponse>(`${backendUrl}chat/message`, {
-        message,
-        session_id: sessionId,
-      });
+      const response = await axios.post<MessageResponse>(
+        `${backendUrl}chat/message`,
+        {
+          message,
+          session_id: sessionId,
+        },
+        {
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+          },
+        }
+      );
 
       setMessages((prev) => [
         ...prev,
