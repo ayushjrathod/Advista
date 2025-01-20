@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import axios from "axios";
 import { Bot, User } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 
 interface Message {
   id: number;
@@ -31,6 +31,14 @@ interface YouTubeReference {
 }
 
 export default function ChatBot() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ChatBotContent />
+    </Suspense>
+  );
+}
+
+function ChatBotContent() {
   const searchParams = useSearchParams();
   const initialMessage = searchParams.get("input") || ""; // Get initial message from URL query parameter
 
