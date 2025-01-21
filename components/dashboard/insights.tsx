@@ -1,20 +1,29 @@
-'use client';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import ReactMarkdown from 'react-markdown';
+"use client";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import ReactMarkdown from "react-markdown";
 
-export function Insights({ data }) {
+interface InsightsData {
+  processed: boolean;
+  query: string;
+  timestamp: string;
+  _id: string;
+  youtube_groq_analysis?: string;
+  reddit_groq_insight?: string;
+}
+
+export function Insights({ data }: { data: InsightsData }) {
   if (!data) return <div>Loading...</div>;
 
   const getStatusDisplay = () => {
     if (!data.processed) {
       return {
         text: "Processing...",
-        className: "text-yellow-400"
+        className: "text-yellow-400",
       };
     }
     return {
       text: "Completed",
-      className: "text-green-400"
+      className: "text-green-400",
     };
   };
 
@@ -23,10 +32,10 @@ export function Insights({ data }) {
   const insightsData = [
     { title: "Query", value: data.query },
     { title: "Timestamp", value: new Date(data.timestamp).toLocaleString() },
-    { 
-      title: "Status", 
+    {
+      title: "Status",
       value: status.text,
-      className: status.className 
+      className: status.className,
     },
     { title: "Session ID", value: data._id },
   ];
@@ -38,19 +47,15 @@ export function Insights({ data }) {
         {insightsData.map((insight, index) => (
           <Card key={index}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                {insight.title}
-              </CardTitle>
+              <CardTitle className="text-sm font-medium">{insight.title}</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className={`text-2xl font-bold ${insight.className || ''}`}>
-                {insight.value}
-              </div>
+              <div className={`text-2xl font-bold ${insight.className || ""}`}>{insight.value}</div>
             </CardContent>
           </Card>
         ))}
       </div>
-      
+
       {/* Analysis Sections */}
       <div className="space-y-8">
         {/* YouTube Analysis */}
@@ -60,9 +65,7 @@ export function Insights({ data }) {
             <Card className="bg-black/20">
               <CardContent className="p-6">
                 <div className="prose prose-invert max-w-none">
-                  <ReactMarkdown>
-                    {data.youtube_groq_analysis}
-                  </ReactMarkdown>
+                  <ReactMarkdown>{data.youtube_groq_analysis}</ReactMarkdown>
                 </div>
               </CardContent>
             </Card>
@@ -76,9 +79,7 @@ export function Insights({ data }) {
             <Card className="bg-black/20">
               <CardContent className="p-6">
                 <div className="prose prose-invert max-w-none">
-                  <ReactMarkdown>
-                    {data.reddit_groq_insight}
-                  </ReactMarkdown>
+                  <ReactMarkdown>{data.reddit_groq_insight}</ReactMarkdown>
                 </div>
               </CardContent>
             </Card>
@@ -88,4 +89,3 @@ export function Insights({ data }) {
     </div>
   );
 }
-
