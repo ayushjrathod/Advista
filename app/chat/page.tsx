@@ -51,7 +51,7 @@ function ChatBotContent() {
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   const initializationDone = useRef(false); // Ref to track initialization
-  const backendUrl = "https://python-api-hqcubfc9eugmf4ch.westindia-01.azurewebsites.net/";
+  const backendUrl = "http://20.198.16.49:8000/";
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
