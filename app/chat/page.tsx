@@ -1,13 +1,12 @@
 "use client";
 
 import { BackgroundBeams } from "@/components/ui/background-beams";
-import { Card } from "@/components/ui/card"; // Import Card component from shadcn
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import axios from "axios";
 import { Bot, User } from "lucide-react";
-import { useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 
 interface Message {
   id: number;
@@ -31,16 +30,10 @@ interface YouTubeReference {
 }
 
 export default function ChatBot() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <ChatBotContent />
-    </Suspense>
-  );
-}
-
-function ChatBotContent() {
   const searchParams = useSearchParams();
   const initialMessage = searchParams.get("input") || ""; // Get initial message from URL query parameter
+  const router = useRouter();
+  const backendUrl = "http://20.198.16.49:8000";
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState<string>("");
@@ -51,7 +44,6 @@ function ChatBotContent() {
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   const initializationDone = useRef(false); // Ref to track initialization
-  const backendUrl = "http://20.198.16.49:8000/";
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -67,7 +59,7 @@ function ChatBotContent() {
       try {
         setIsLoading(true);
         const startResponse = await axios.post<StartChatResponse>(
-          `${backendUrl}chat/start`,
+          `${backendUrl}/chat/start`,
           {},
           {
             headers: {
@@ -80,14 +72,14 @@ function ChatBotContent() {
         if (initialMessage) {
           setMessages((prev) => [...prev, { id: Date.now(), role: "user", content: initialMessage }]);
           const response = await axios.post<MessageResponse>(
-            `${backendUrl}chat/message`,
+            `${backendUrl}/chat/message`,
             {
               message: initialMessage,
               session_id: startResponse.data.session_id,
             },
             {
               headers: {
-                "Access-Control-Allow-Origin": "*",
+                "Content-Type": "application/json",
               },
             }
           );
@@ -117,9 +109,9 @@ function ChatBotContent() {
 
   const fetchReferences = async (session_id: string) => {
     try {
-      const response = await axios.get(`${backendUrl}/results/${session_id}`, {
+      const response = await axios.get(`${backendUrl}/chat/references?session_id=${session_id}`, {
         headers: {
-          "Access-Control-Allow-Origin": "*",
+          "Content-Type": "application/json",
         },
       });
       setReferences(response.data.youtube_results); // Assuming response contains youtube_results
@@ -136,14 +128,14 @@ function ChatBotContent() {
     try {
       setIsLoading(true);
       const response = await axios.post<MessageResponse>(
-        `${backendUrl}chat/message`,
+        `${backendUrl}/chat/message`,
         {
           message,
           session_id: sessionId,
         },
         {
           headers: {
-            "Access-Control-Allow-Origin": "*",
+            "Content-Type": "application/json",
           },
         }
       );
@@ -159,7 +151,9 @@ function ChatBotContent() {
 
       if (response.data.is_complete) {
         setChatComplete(true);
-        await fetchReferences(sessionId); // Fetch references once chat is complete
+        await fetchReferences(sessionId);
+        // Navigate to dashboard with session_id
+        router.push(`/dashboard?session_id=${sessionId}`);
       }
     } catch (error) {
       console.error("Error sending message:", error);
@@ -178,6 +172,12 @@ function ChatBotContent() {
     await sendUserMessage(input);
     setInput("");
   };
+
+  useEffect(() => {
+    if (chatComplete && sessionId) {
+      router.push(`/dashboard?session_id=${sessionId}`);
+    }
+  }, [chatComplete, sessionId, router]);
 
   return (
     <div className="flex flex-col h-screen bg-black text-white">
@@ -210,8 +210,9 @@ function ChatBotContent() {
               )}
             </div>
           ))}
+          {chatComplete && <div>{/* Navigation handled in useEffect */}</div>}
 
-          {chatComplete && references && (
+          {/* {chatComplete && references && (
             <div className="z-12 mt-4 space-y-4">
               <h2 className="text-lg text-white mb-2">References</h2>
               {references.map((reference) => (
@@ -227,8 +228,10 @@ function ChatBotContent() {
                   </a>
                   <iframe
                     className="mt-2 w-full h-40"
-                    src={`https://www.youtube.com/embed/${reference.id}`}
+                    src={`https://www.youtube.com/embed/${reference.id}?rel=0`}
                     title={reference.title}
+                    width="100%"
+                    height="315"
                     frameBorder="0"
                     allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
@@ -238,7 +241,7 @@ function ChatBotContent() {
             </div>
           )}
 
-          <div ref={messagesEndRef} />
+          <div ref={messagesEndRef} /> */}
         </div>
       </ScrollArea>
       <div className="z-10 w-full">
