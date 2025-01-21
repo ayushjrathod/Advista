@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import axios from "axios";
 import { Bot, User } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState, Suspense } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 
 interface Message {
   id: number;
@@ -41,7 +41,9 @@ function ChatBotContent() {
   const searchParams = useSearchParams();
   const initialMessage = searchParams.get("input") || ""; // Get initial message from URL query parameter
   const router = useRouter();
-  const backendUrl = "http://20.198.16.49:8000";
+  // const backendUrl = "http://20.198.16.49:8000";
+  // const backendUrl = "python-api2.azurewebsites.net";
+  const backendUrl = "https://levelsupermind-backend-z0y6.onrender.com";
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState<string>("");
