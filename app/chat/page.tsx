@@ -44,7 +44,7 @@ function ChatBotContent() {
   // const backendUrl = "http://20.198.16.49:8000";
   // const backendUrl = "python-api2.azurewebsites.net";
   // const backendUrl = "https://levelsupermind-backend-z0y6.onrender.com";
-  const backendUrl = "http://127.0.0.1:8000";
+  // const backendUrl = "http://127.0.0.1:8000";
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState<string>("");
@@ -70,7 +70,8 @@ function ChatBotContent() {
       try {
         setIsLoading(true);
         const startResponse = await axios.post<StartChatResponse>(
-          `${backendUrl}/chat/start`,
+          // `${backendUrl}/chat/start`,
+          "/api2/chat/start",
           {},
           {
             headers: {
@@ -83,7 +84,8 @@ function ChatBotContent() {
         if (initialMessage) {
           setMessages((prev) => [...prev, { id: Date.now(), role: "user", content: initialMessage }]);
           const response = await axios.post<MessageResponse>(
-            `${backendUrl}/chat/message`,
+            // `${backendUrl}/chat/message`,
+            "/api2/chat/message",
             {
               message: initialMessage,
               session_id: startResponse.data.session_id,
