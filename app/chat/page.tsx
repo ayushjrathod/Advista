@@ -44,7 +44,7 @@ function ChatBotContent() {
   // const backendUrl = "http://20.198.16.49:8000";
   // const backendUrl = "python-api2.azurewebsites.net";
   // const backendUrl = "https://levelsupermind-backend-z0y6.onrender.com";
-  const backendUrl = "http://0.0.0.0:8000";
+  const backendUrl = "http://127.0.0.1:8000";
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState<string>("");

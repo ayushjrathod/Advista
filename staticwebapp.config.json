@@ -1,8 +1,0 @@
-{
-  "routes": [],
-  "globalHeaders": {
-    "Access-Control-Allow-Origin": "http://20.198.16.49:8000",
-    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization"
-  }
-}
