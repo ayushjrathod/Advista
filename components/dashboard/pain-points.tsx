@@ -1,21 +1,20 @@
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
-// This would typically come from your backend
-const painPointsData = [
-  { id: 1, description: "Slow loading times on mobile devices" },
-  { id: 2, description: "Difficulty in navigating through product categories" },
-  { id: 3, description: "Lack of detailed product information" },
-  { id: 4, description: "Complicated checkout process" },
-]
+interface PainPointsProps {
+  data: any;
+}
 
-export function PainPoints() {
+export function PainPoints({ data }: PainPointsProps) {
+  // Ensure data exists before rendering
+  if (!data) return <div>Loading pain points...</div>;
+
+  const painPointsData = [
+    { id: 1, description: "Slow loading times on mobile devices" },
+    { id: 2, description: "Difficulty in navigating through product categories" },
+    { id: 3, description: "Lack of detailed product information" },
+    { id: 4, description: "Complicated checkout process" },
+  ];
+
   return (
     <Table>
       <TableHeader>
@@ -33,6 +32,5 @@ export function PainPoints() {
         ))}
       </TableBody>
     </Table>
-  )
+  );
 }
-

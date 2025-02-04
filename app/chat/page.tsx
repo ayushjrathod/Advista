@@ -44,7 +44,8 @@ function ChatBotContent() {
   // const backendUrl = "http://20.198.16.49:8000";
   // const backendUrl = "python-api2.azurewebsites.net";
   // const backendUrl = "https://levelsupermind-backend-z0y6.onrender.com";
-  const backendUrl = "http://localhost:8000";
+  // const backendUrl = "http://localhost:8000";
+  const backendUrl = "https://backend.outofbounds.live/";
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState<string>("");
@@ -221,6 +222,25 @@ function ChatBotContent() {
               )}
             </div>
           ))}
+
+          {isLoading && (
+            <div className="flex items-start space-x-2 mb-4 justify-start">
+              <div className="w-8 h-8 rounded-full border border-zinc-700/30 text-white flex items-center justify-center">
+                <Bot size={16} />
+              </div>
+              <div className="max-w-[80%] rounded-2xl px-4 py-2 border backdrop-blur-sm border-zinc-800/20 bg-gradient-to-br from-zinc-950/90 to-zinc-900/70">
+                <div className="flex items-center space-x-2">
+                  <p className="text-zinc-400">Checking if information is complete or not</p>
+                  <div className="flex space-x-1">
+                    <span className="w-2 h-2 bg-zinc-400 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                    <span className="w-2 h-2 bg-zinc-400 rounded-full animate-bounce [animation-delay:-0.2s]"></span>
+                    <span className="w-2 h-2 bg-zinc-400 rounded-full animate-bounce [animation-delay:-0.1s]"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {chatComplete && <div>{/* Navigation handled in useEffect */}</div>}
 
           {/* {chatComplete && references && (

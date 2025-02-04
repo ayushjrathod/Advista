@@ -1,8 +1,7 @@
 "use client";
 import { BagOfWords } from "@/components/dashboard/bag-of-words";
-import { Insights } from "@/components/dashboard/insights";
 import { PainPoints } from "@/components/dashboard/pain-points";
-import { References } from "@/components/dashboard/references";
+import { References } from "@/components/dashboard/references"; // Updated import path
 import { Tabs } from "@/components/ui/tabs";
 import { useSearchParams } from "next/navigation";
 import { ReactNode, Suspense, useEffect, useState } from "react";
@@ -10,6 +9,10 @@ import { ReactNode, Suspense, useEffect, useState } from "react";
 interface AnalysisData {
   query: string;
   timestamp: string;
+  youtube_groq_analysis?: string;
+  reddit_groq_insight?: string;
+  groq_analysis?: string;
+  processed?: boolean;
 }
 
 interface Tab {
@@ -68,36 +71,6 @@ function DashboardContent() {
 
   const tabs: Tab[] = [
     {
-      title: "Insights",
-      value: "insights",
-      content: (
-        <div className="mt-8">
-          <div className="w-full h-full overflow-hidden relative rounded-3xl  shadow-2xl">
-            <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent"></div>
-            <div className="relative z-10 p-8 md:p-12">
-              {/* @ts-ignore */}
-              <Insights data={analysisData as AnalysisData} />
-            </div>
-          </div>
-        </div>
-      ),
-    },
-    {
-      title: "Pain Points",
-      value: "painPoints",
-      content: (
-        <div className="mt-8">
-          <div className="w-full h-full overflow-hidden relative rounded-3xl  shadow-2xl">
-            <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent"></div>
-            <div className="relative z-10 p-8 md:p-12">
-              {/* @ts-ignore */}
-              <PainPoints data={analysisData as AnalysisData} />
-            </div>
-          </div>
-        </div>
-      ),
-    },
-    {
       title: "References",
       value: "references",
       content: (
@@ -105,7 +78,15 @@ function DashboardContent() {
           <div className="w-full h-full overflow-hidden relative rounded-3xl shadow-2xl">
             <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent"></div>
             <div className="relative z-10 p-8 md:p-12">
-              <References data={analysisData as AnalysisData} />
+              <References
+                data={{
+                  ...analysisData,
+                  youtube_groq_analysis: analysisData?.youtube_groq_analysis,
+                  reddit_groq_insight: analysisData?.reddit_groq_insight,
+                  processed: analysisData?.processed,
+                }}
+                session_id={searchParams.get("session_id") || "20250119_041143"}
+              />
             </div>
           </div>
         </div>
@@ -119,8 +100,22 @@ function DashboardContent() {
           <div className="w-full h-full">
             <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent"></div>
             <div className="relative z-10 p-8 md:p-12">
-              {/*@ts-ignore*/}
               <BagOfWords data={analysisData as AnalysisData} />
+            </div>
+          </div>
+        </div>
+      ),
+    },
+
+    {
+      title: "Pain Points",
+      value: "painPoints",
+      content: (
+        <div className="mt-8">
+          <div className="w-full h-full overflow-hidden relative rounded-3xl  shadow-2xl">
+            <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent"></div>
+            <div className="relative z-10 p-8 md:p-12">
+              <PainPoints data={analysisData as AnalysisData} />
             </div>
           </div>
         </div>
