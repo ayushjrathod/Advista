@@ -1,6 +1,5 @@
 "use client";
 
-import { BackgroundBeams } from "@/components/ui/background-beams";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import axios from "axios";
@@ -39,13 +38,9 @@ export default function ChatBot() {
 
 function ChatBotContent() {
   const searchParams = useSearchParams();
-  const initialMessage = searchParams.get("input") || ""; // Get initial message from URL query parameter
+  const initialMessage = searchParams.get("input") || "";
   const router = useRouter();
-  // const backendUrl = "http://20.198.16.49:8000";
-  // const backendUrl = "python-api2.azurewebsites.net";
-  // const backendUrl = "https://levelsupermind-backend-z0y6.onrender.com";
-  // const backendUrl = "http://localhost:8000";
-  const backendUrl = "https://backend.outofbounds.live";
+  const backendUrl = "https://advista-api-ef7b83756322.herokuapp.com";
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState<string>("");
@@ -242,37 +237,6 @@ function ChatBotContent() {
           )}
 
           {chatComplete && <div>{/* Navigation handled in useEffect */}</div>}
-
-          {/* {chatComplete && references && (
-            <div className="z-12 mt-4 space-y-4">
-              <h2 className="text-lg text-white mb-2">References</h2>
-              {references.map((reference) => (
-                <Card key={reference.id} className="bg-zinc-800 p-4 rounded-xl">
-                  <h3 className="text-md text-white font-bold">{reference.title}</h3>
-                  <a
-                    href={reference.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-500 hover:text-blue-400"
-                  >
-                    Watch Video
-                  </a>
-                  <iframe
-                    className="mt-2 w-full h-40"
-                    src={`https://www.youtube.com/embed/${reference.id}?rel=0`}
-                    title={reference.title}
-                    width="100%"
-                    height="315"
-                    frameBorder="0"
-                    allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
-                </Card>
-              ))}
-            </div>
-          )}
-
-          <div ref={messagesEndRef} /> */}
         </div>
       </ScrollArea>
       <div className="z-10 w-full">
@@ -325,7 +289,7 @@ function ChatBotContent() {
           </div>
         </form>
       </div>
-      <BackgroundBeams />
+      {/* <BackgroundBeams /> */}
     </div>
   );
 }
