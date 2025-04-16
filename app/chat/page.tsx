@@ -52,6 +52,13 @@ function ChatBotContent() {
 
   const initializationDone = useRef(false); // Ref to track initialization
 
+  const axiosConfig = {
+    headers: {
+      "Content-Type": "application/json",
+    },
+    withCredentials: true,
+  };
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -65,15 +72,7 @@ function ChatBotContent() {
     const initializeChat = async () => {
       try {
         setIsLoading(true);
-        const startResponse = await axios.post<StartChatResponse>(
-          `${backendUrl}/chat/start`,
-          {},
-          {
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
+        const startResponse = await axios.post<StartChatResponse>(`${backendUrl}/chat/start`, {}, axiosConfig);
         setSessionId(startResponse.data.session_id);
 
         if (initialMessage) {
@@ -84,11 +83,7 @@ function ChatBotContent() {
               message: initialMessage,
               session_id: startResponse.data.session_id,
             },
-            {
-              headers: {
-                "Content-Type": "application/json",
-              },
-            }
+            axiosConfig
           );
           setMessages((prev) => [
             ...prev,
@@ -116,11 +111,7 @@ function ChatBotContent() {
 
   const fetchReferences = async (session_id: string) => {
     try {
-      const response = await axios.get(`${backendUrl}/chat/references?session_id=${session_id}`, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      const response = await axios.get(`${backendUrl}/chat/references?session_id=${session_id}`, axiosConfig);
       setReferences(response.data.youtube_results); // Assuming response contains youtube_results
     } catch (error) {
       console.error("Error fetching references:", error);
@@ -140,11 +131,7 @@ function ChatBotContent() {
           message,
           session_id: sessionId,
         },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
+        axiosConfig
       );
 
       setMessages((prev) => [
