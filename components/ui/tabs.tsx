@@ -8,6 +8,7 @@ type Tab = {
   title: string;
   value: string;
   content?: string | React.ReactNode | any;
+  icon?: React.ReactNode;
 };
 
 export const Tabs = ({
@@ -46,7 +47,10 @@ export const Tabs = ({
                 transition={{ type: "spring", bounce: 0.3, duration: 0.6 }}
               />
             )}
-            <span className="relative block text-white">{tab.title}</span>
+            <span className="relative block text-white flex items-center gap-2">
+              {tab.icon}
+              {tab.title}
+            </span>
           </button>
         ))}
       </div>

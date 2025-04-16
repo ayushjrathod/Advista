@@ -95,13 +95,9 @@ export function PainPoints({ data }: PainPointsProps) {
       <Tabs
         containerClassName="w-full"
         tabs={painPointsCategories.map((category) => ({
-          title: (
-            <div className="flex items-center gap-2">
-              {category.icon}
-              <span>{category.title}</span>
-            </div>
-          ),
+          title: category.title,
           value: category.value,
+          icon: category.icon,
           content: category.content,
         }))}
       />
