@@ -40,7 +40,10 @@ function ChatBotContent() {
   const searchParams = useSearchParams();
   const initialMessage = searchParams.get("input") || "";
   const router = useRouter();
-  const backendUrl = "https://advista-api-ef7b83756322.herokuapp.com";
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "";
+  if (!backendUrl) {
+    throw new Error("NEXT_PUBLIC_BACKEND_URL is not defined");
+  }
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState<string>("");
