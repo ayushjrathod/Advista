@@ -253,21 +253,21 @@ function ChatBotContent() {
                   width="35"
                 >
                   <path
-                    fill-opacity="0.01"
+                    fillOpacity="0.01"
                     fill="white"
                     d="M63.6689 29.0491L34.6198 63.6685L0.00043872 34.6194L29.0496 1.67708e-05L63.6689 29.0491Z"
                   ></path>
                   <path
-                    stroke-linejoin="round"
-                    stroke-linecap="round"
-                    stroke-width="3.76603"
+                    strokeLinejoin="round"
+                    strokeLinecap="round"
+                    strokeWidth="3.76603"
                     stroke="white"
                     d="M42.8496 18.7067L21.0628 44.6712"
                   ></path>
                   <path
-                    stroke-linejoin="round"
-                    stroke-linecap="round"
-                    stroke-width="3.76603"
+                    strokeLinejoin="round"
+                    strokeLinecap="round"
+                    strokeWidth="3.76603"
                     stroke="white"
                     d="M26.9329 20.0992L42.85 18.7067L44.2426 34.6238"
                   ></path>
