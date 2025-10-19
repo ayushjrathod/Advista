@@ -1,8 +1,8 @@
 import { About } from "@/components/landing/About";
 import { FloatingNav } from "@/components/landing/floating-navbar";
 import HeroButton from "@/components/landing/HeroButton";
-import SmokeSceneComponent from "@/components/landing/SmokeScreenComponent";
 import SplineComponent from "@/components/landing/SplineComponent";
+import { Spotlight } from "@/components/ui/spotlight-new";
 import { HomeIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -16,7 +16,7 @@ export default function LandingPage() {
   return (
     <div className="relative min-h-screen bg-black">
       <FloatingNav className="" navItems={navItems} />
-      <SmokeSceneComponent />
+      {/* <SmokeSceneComponent /> */}
       <main className="relative min-h-screen flex items-center bg-transparent">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row items-center justify-between">
           <div className="text-left lg:w-1/2 mb-8 lg:mb-0">
@@ -31,6 +31,7 @@ export default function LandingPage() {
               </Link>
             </div>
           </div>
+          <Spotlight />
           <SplineComponent />
         </div>
       </main>

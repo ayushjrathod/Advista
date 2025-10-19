@@ -63,13 +63,13 @@ const SmokeSceneComponent = memo(() => {
           <SmokeScene
             smoke={{
               color: smokeColor,
-              opacity: 0.3, // Further reduced for better performance
-              density: 10, // Further reduced
+              opacity: 0.4, // Further reduced for better performance
+              density: 15, // Further reduced
               enableRotation: true,
               enableWind: true,
               enableTurbulence: false,
               // Additional performance optimizations
-              quality: 0.5, // Lower quality for better performance
+              quality: 0.3, // Lower quality for better performance
               particleCount: 50, // Limit particle count
             }}
           />

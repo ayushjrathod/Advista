@@ -5,12 +5,14 @@ import { Input } from "@/components/ui/input";
 import { verifyCodeSchema } from "@/schemas/verifySchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
 export default function VerifyAccount() {
   const navigate = useNavigate();
   const params = useParams();
+  const [isResending, setIsResending] = useState(false);
 
   const form = useForm({
     resolver: zodResolver(verifyCodeSchema),
@@ -45,6 +47,28 @@ export default function VerifyAccount() {
         console.error("Error:", "An unexpected error occurred. Please try again.");
         alert("An unexpected error occurred. Please try again.");
       }
+    }
+  };
+
+  const handleResendCode = async () => {
+    setIsResending(true);
+    try {
+      await axios.post("/api/v1/auth/resend-verification", {
+        email: params.email,
+      });
+      alert("Verification code sent successfully!");
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response) {
+        const errorMessage =
+          error.response.data.detail || error.response.data.message || "An error occurred. Please try again.";
+        console.error("Resend verification error:", errorMessage);
+        alert(errorMessage);
+      } else {
+        console.error("Error:", "An unexpected error occurred. Please try again.");
+        alert("An unexpected error occurred. Please try again.");
+      }
+    } finally {
+      setIsResending(false);
     }
   };
 
@@ -90,6 +114,16 @@ export default function VerifyAccount() {
           >
             {form.formState.isSubmitting ? "Verifying..." : "Verify"}
           </Button>
+          <div className="text-center">
+            <button
+              type="button"
+              onClick={handleResendCode}
+              disabled={isResending}
+              className="text-sm text-sky-400 hover:text-sky-300 underline disabled:opacity-50"
+            >
+              {isResending ? "Sending..." : "Didn't receive a code? Resend"}
+            </button>
+          </div>
         </form>
       </Form>
     </AuthShell>

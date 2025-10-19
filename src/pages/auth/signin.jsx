@@ -56,8 +56,8 @@ export default function SignInForm() {
         </p>
       }
     >
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="space-y-2 text-left">
+      <form onSubmit={handleSubmit} className="">
+        <div className="space-y-2 text-left mb-6">
           <Label htmlFor="identifier" className="text-sm font-semibold text-white">
             Email
           </Label>
@@ -70,7 +70,7 @@ export default function SignInForm() {
             className="rounded-lg border-white/10 bg-slate-950/60 text-white placeholder:text-slate-400/80 focus-visible:border-sky-400/70 focus-visible:ring-sky-400/60 focus-visible:ring-offset-0"
           />
         </div>
-        <div className="space-y-2 text-left">
+        <div className="space-y-2 text-left mb-8">
           <Label htmlFor="password" className="text-sm font-semibold text-white">
             Password
           </Label>
@@ -84,7 +84,7 @@ export default function SignInForm() {
           />
         </div>
         <Button
-          className="w-full rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-[0_25px_80px_-45px_rgba(59,130,246,0.95)]"
+          className="w-full rounded-lg bg-primary/90 text-primary-foreground shadow-[0_25px_80px_-45px_rgba(59,130,246,0.95)]"
           type="submit"
           disabled={isLoading}
         >
@@ -97,6 +97,11 @@ export default function SignInForm() {
             "Sign in"
           )}
         </Button>
+        <div className="text-right">
+          <Link to="/forgot-password" className="text-sm text-sky-400 hover:text-sky-300 underline">
+            Forgot your password?
+          </Link>
+        </div>
       </form>
     </AuthShell>
   );

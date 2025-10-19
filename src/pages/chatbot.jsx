@@ -1,3 +1,4 @@
+import SmokeSceneComponent from "@/components/landing/SmokeScreenComponent";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import axios from "axios";
@@ -120,7 +121,7 @@ export default function ChatBot() {
         setChatComplete(true);
         await fetchReferences(sessionId);
         // Optionally provide a “next step” UI instead of immediate navigation
-        navigate(`/dashboard?session_id=${sessionId}`);
+        navigate(`/results?session_id=${sessionId}`);
       }
     } catch (error) {
       console.error("Error sending message:", error);
@@ -148,6 +149,7 @@ export default function ChatBot() {
 
   return (
     <div className="flex flex-col h-screen bg-black text-white">
+      <SmokeSceneComponent />
       <ScrollArea className="z-10 h-screen flex-1 px-4 py-6 overflow-y-auto">
         <div className="max-w-4xl bg-gradient-to-r p-2 rounded-xl mx-auto space-y-4">
           {messages.map((m) => (
