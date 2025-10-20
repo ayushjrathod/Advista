@@ -1,25 +1,24 @@
 import SmokeSceneComponent from "@/components/landing/SmokeScreenComponent";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import axios from "axios";
+
 import { Bot, User } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 
 export default function ChatBot() {
   const [searchParams] = useSearchParams();
   const params = useParams();
   const initialMessage = searchParams.get("input") || params.initialMessage || "";
-  const navigate = useNavigate();
 
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [sessionId, setSessionId] = useState(null);
-  const [chatComplete, setChatComplete] = useState(false);
+  const [threadId, setThreadId] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
 
   const messagesEndRef = useRef(null);
+  const inputRef = useRef(null);
   const initializationDone = useRef(false);
 
   const scrollToBottom = () => {
@@ -27,6 +26,13 @@ export default function ChatBot() {
   };
 
   useEffect(scrollToBottom, [messages]);
+
+  // Refocus input field after sending a message
+  useEffect(() => {
+    if (inputRef.current && !isLoading) {
+      inputRef.current.focus();
+    }
+  }, [messages.length, isLoading]);
 
   // Initialize chat session
   useEffect(() => {
@@ -44,31 +50,17 @@ export default function ChatBot() {
             content: "Hi! I’m Advista Research Assistant. Please share details of your product or service?",
           },
         ]);
-
-        const startResponse = await axios.post("/api/v1/chat/start", {});
-        setSessionId(startResponse.data.session_id);
+        // Generate a thread id for streaming conversations
+        const tid =
+          typeof crypto !== "undefined" && crypto.randomUUID
+            ? crypto.randomUUID()
+            : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        setThreadId(tid);
 
         if (initialMessage) {
-          // add user message
-          setMessages((prev) => [...prev, { id: Date.now(), role: "user", content: initialMessage }]);
-          const response = await axios.post("/api/v1/chat/message", {
-            message: initialMessage,
-            session_id: startResponse.data.session_id,
-          });
-
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: Date.now(),
-              role: "bot",
-              content: response.data.message,
-            },
-          ]);
-
-          if (response.data.is_complete) {
-            setChatComplete(true);
-            await fetchReferences(startResponse.data.session_id);
-          }
+          // Prefill input with the initial message but do not call the API yet
+          // The API call should happen only after the user explicitly sends the first message
+          setInput(initialMessage);
         }
       } catch (error) {
         console.error("Error initializing chat:", error);
@@ -81,51 +73,108 @@ export default function ChatBot() {
     initializeChat();
   }, [initialMessage]);
 
-  const fetchReferences = async (session_id) => {
-    try {
-      await axios.get(`/api/v1/chat/references?session_id=${session_id}`);
-      // You can set state for references if needed
-    } catch (error) {
-      console.error("Error fetching references:", error);
-      // maybe no user-facing error needed here, but you could set one if relevant
-    }
-  };
-
   const sendUserMessage = async (message) => {
-    if (!sessionId) {
-      setErrorMessage("Session not established. Please refresh and try again.");
+    if (!threadId) {
+      setErrorMessage("Chat not initialized. Please refresh and try again.");
       return;
     }
 
     // Add user message
     setMessages((prev) => [...prev, { id: Date.now(), role: "user", content: message }]);
     setInput("");
+
+    // Reset textarea height
+    if (inputRef.current) {
+      inputRef.current.style.height = "auto";
+    }
+
     setErrorMessage(null);
+    await sendStreamingMessage(message, threadId);
+  };
+
+  const sendStreamingMessage = async (message, tid) => {
     try {
       setIsLoading(true);
-      const response = await axios.post("/api/v1/chat/message", {
-        message,
-        session_id: sessionId,
+      const botId = Date.now() + 1;
+
+      const token =
+        typeof localStorage !== "undefined"
+          ? localStorage.getItem("token") || localStorage.getItem("access_token")
+          : null;
+
+      const res = await fetch("/api/v1/chat/stream", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "text/event-stream",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ thread_id: tid, message }),
       });
 
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: Date.now(),
-          role: "bot",
-          content: response.data.message,
-        },
-      ]);
+      if (!res.ok) {
+        if (res.status === 401) {
+          throw new Error("Authentication required. Please sign in to continue chatting.");
+        }
+        throw new Error(`Streaming request failed with status ${res.status}`);
+      }
 
-      if (response.data.is_complete) {
-        setChatComplete(true);
-        await fetchReferences(sessionId);
-        // Optionally provide a “next step” UI instead of immediate navigation
-        navigate(`/results?session_id=${sessionId}`);
+      if (!res.body) {
+        throw new Error("No response body received");
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let botMessageAdded = false;
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        // SSE frames separated by double newlines
+        const parts = buffer.split("\n\n");
+        buffer = parts.pop() || ""; // keep last partial
+
+        for (const part of parts) {
+          const line = part.trim();
+          if (!line) continue;
+          // Expect lines like: "data: <chunk>"
+          const prefix = "data:";
+          if (line.startsWith(prefix)) {
+            const chunk = line.slice(prefix.length).trim();
+            if (chunk) {
+              // Add bot message only when we receive the first chunk
+              if (!botMessageAdded) {
+                setMessages((prev) => [
+                  ...prev,
+                  {
+                    id: botId,
+                    role: "bot",
+                    content: chunk,
+                  },
+                ]);
+                botMessageAdded = true;
+                setIsLoading(false); // Stop showing loading indicator
+              } else {
+                // Update existing bot message
+                setMessages((prev) =>
+                  prev.map((m) => (m.id === botId ? { ...m, content: (m.content || "") + chunk } : m))
+                );
+              }
+            }
+          }
+        }
+      }
+
+      // If no content was received, ensure loading is stopped
+      if (!botMessageAdded) {
+        setIsLoading(false);
       }
     } catch (error) {
-      console.error("Error sending message:", error);
-      setErrorMessage("There was a problem sending your message. Please try again.");
+      console.error("Streaming error:", error);
+      setErrorMessage("There was a problem streaming the response. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -133,6 +182,11 @@ export default function ChatBot() {
 
   const handleInputChange = (e) => {
     setInput(e.target.value);
+
+    // Auto-resize textarea
+    const textarea = e.target;
+    textarea.style.height = "auto";
+    textarea.style.height = Math.min(textarea.scrollHeight, 120) + "px"; // Max height of 120px
   };
 
   const onSubmit = async (e) => {
@@ -140,12 +194,6 @@ export default function ChatBot() {
     if (!input.trim() || isLoading) return;
     await sendUserMessage(input);
   };
-
-  useEffect(() => {
-    if (chatComplete && sessionId) {
-      navigate(`/dashboard?session_id=${sessionId}`);
-    }
-  }, [chatComplete, sessionId, navigate]);
 
   return (
     <div className="flex flex-col h-screen bg-black text-white">
@@ -200,34 +248,34 @@ export default function ChatBot() {
 
           {errorMessage && <div className="text-red-500 text-center mt-4">{errorMessage}</div>}
 
-          {chatComplete && (
-            <div className="text-center mt-4">
-              <p>Chat is complete. Redirecting…</p>
-              {/* Or optionally display a “Go to Dashboard” button instead of immediate redirect */}
-            </div>
-          )}
-
           <div ref={messagesEndRef} />
         </div>
       </ScrollArea>
 
       <div className="z-10 w-full">
         <form onSubmit={onSubmit} className="max-w-2xl mx-auto p-4 w-full">
-          <div className="relative rounded-full overflow-hidden bg-zinc-900 border border-zinc-800 shadow-xl">
-            <input
-              className="input bg-transparent outline-none border-none pl-4 pr-8 py-3 w-full font-sans text-md text-zinc-100 placeholder-zinc-400"
-              type="text"
+          <div className="relative rounded-2xl overflow-hidden bg-zinc-900 border border-zinc-800 shadow-xl">
+            <textarea
+              ref={inputRef}
+              className="input bg-transparent outline-none border-none pl-4 pr-12 py-3 w-full font-sans text-md text-zinc-100 placeholder-zinc-400 resize-none min-h-[48px] max-h-[120px]"
               value={input}
               onChange={handleInputChange}
               placeholder="Type a message..."
-              disabled={isLoading || chatComplete}
+              disabled={isLoading}
               aria-label="Type your message"
+              rows={1}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  onSubmit(e);
+                }
+              }}
             />
-            <div className="absolute right-1 top-[0.2em]">
+            <div className="absolute right-1 bottom-1">
               <button
                 type="submit"
                 className="w-10 h-10 rounded-full bg-violet-600 hover:bg-violet-500 group shadow-xl flex items-center justify-center relative overflow-hidden"
-                disabled={isLoading || !input.trim() || chatComplete}
+                disabled={isLoading || !input.trim()}
                 aria-label="Send message"
               >
                 <svg
