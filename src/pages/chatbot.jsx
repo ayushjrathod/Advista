@@ -102,7 +102,7 @@ export default function ChatBot() {
           ? localStorage.getItem("token") || localStorage.getItem("access_token")
           : null;
 
-      const res = await fetch("/api/v1/chat/stream", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/api/v1/chat/stream`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

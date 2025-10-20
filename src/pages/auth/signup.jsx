@@ -2,11 +2,11 @@ import { AuthShell } from "@/components/auth/auth-shell";
 import { Button } from "@/components/ui/button";
 import { Form, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import api from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { emailValidation, signUpSchema } from "@/schemas/signUpSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useDebounce } from "@uidotdev/usehooks";
-import axios from "axios";
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -46,7 +46,7 @@ export default function SignUpForm() {
 
       setCheckingEmail(true);
       setEmailMessage("");
-      await axios
+      await api
         .get(`/api/v1/auth/check-email-unique?email=${debouncedEmail}`)
         .then((response) => {
           setEmailMessage(response.data.message);
@@ -66,7 +66,7 @@ export default function SignUpForm() {
     setIsSubmitting(true);
 
     try {
-      const response = await axios.post("/api/v1/auth/signup", data);
+      const response = await api.post("/api/v1/auth/signup", data);
 
       console.log("Success:", response.data.message);
       navigate(`/verify/${email}`);

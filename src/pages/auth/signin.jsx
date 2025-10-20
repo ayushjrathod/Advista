@@ -2,7 +2,7 @@ import { AuthShell } from "@/components/auth/auth-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import axios from "axios";
+import api from "@/lib/api";
 import { Loader2 } from "lucide-react";
 import { useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -25,7 +25,7 @@ export default function SignInForm() {
     }
 
     setIsLoading(true);
-    await axios
+    await api
       .post("/api/v1/auth/signin", {
         email,
         password,

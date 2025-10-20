@@ -2,7 +2,7 @@ import { AuthShell } from "@/components/auth/auth-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import axios from "axios";
+import api from "@/lib/api";
 import { Loader2 } from "lucide-react";
 import { useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -26,13 +26,13 @@ export default function ForgotPasswordForm() {
 
     setIsLoading(true);
     try {
-      await axios.post("/api/v1/auth/forgot-password", {
+      await api.post("/api/v1/auth/forgot-password", {
         email,
       });
       setUserEmail(email);
       setIsEmailSent(true);
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
+      if (api.isAxiosError(error) && error.response) {
         const errorMessage =
           error.response.data.detail || error.response.data.message || "An error occurred. Please try again.";
         console.error("Forgot password error:", errorMessage);

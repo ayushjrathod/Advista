@@ -2,9 +2,9 @@ import { AuthShell } from "@/components/auth/auth-shell";
 import { Button } from "@/components/ui/button";
 import { Form, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import api from "@/lib/api";
 import { verifyCodeSchema } from "@/schemas/verifySchema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import axios from "axios";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate, useParams } from "react-router-dom";
@@ -29,7 +29,7 @@ export default function VerifyAccount() {
     }
 
     try {
-      const response = await axios.post("/api/v1/auth/verify-email", {
+      const response = await api.post("/api/v1/auth/verify-email", {
         email: params.email,
         verify_code: data.verify_code,
       });
@@ -37,7 +37,7 @@ export default function VerifyAccount() {
       console.log("Success:", response.data.message);
       navigate("/sign-in", { replace: true });
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
+      if (api.isAxiosError(error) && error.response) {
         const errorMessage =
           error.response.data.detail || error.response.data.message || "An error occurred. Please try again.";
         console.error("Verification Failed:", errorMessage);
@@ -53,12 +53,12 @@ export default function VerifyAccount() {
   const handleResendCode = async () => {
     setIsResending(true);
     try {
-      await axios.post("/api/v1/auth/resend-verification", {
+      await api.post("/api/v1/auth/resend-verification", {
         email: params.email,
       });
       alert("Verification code sent successfully!");
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
+      if (api.isAxiosError(error) && error.response) {
         const errorMessage =
           error.response.data.detail || error.response.data.message || "An error occurred. Please try again.";
         console.error("Resend verification error:", errorMessage);
