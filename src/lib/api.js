@@ -1,12 +1,27 @@
 import axios from "axios";
 
+// Get API URL from environment or use default
+const getApiUrl = () => {
+  const envUrl = import.meta.env.VITE_API_URL;
+  if (envUrl) return envUrl;
+
+  // Fallback based on environment
+  if (import.meta.env.DEV) {
+    return "http://localhost:8000";
+  }
+
+  // Production fallback - you should set VITE_API_URL in production
+  return "https://your-api-domain.com";
+};
+
 // Create axios instance with base URL from environment
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:8000",
+  baseURL: getApiUrl(),
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",
   },
+  withCredentials: true, // Enable credentials for CORS
 });
 
 // Request interceptor to add auth token
