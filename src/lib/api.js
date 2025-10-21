@@ -4,14 +4,6 @@ import axios from "axios";
 const getApiUrl = () => {
   const envUrl = import.meta.env.VITE_API_URL;
   if (envUrl) return envUrl;
-
-  // Fallback based on environment
-  if (import.meta.env.DEV) {
-    return "http://localhost:8000";
-  }
-
-  // Production fallback - you should set VITE_API_URL in production
-  return "https://your-api-domain.com";
 };
 
 // Create axios instance with base URL from environment
