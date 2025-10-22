@@ -2,6 +2,7 @@ import { AuthShell } from "@/components/auth/auth-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useAuth } from "@/contexts/AuthContext";
 import api from "@/lib/api";
 import { Loader2 } from "lucide-react";
 import { useRef, useState } from "react";
@@ -9,6 +10,7 @@ import { Link, useNavigate } from "react-router-dom";
 
 export default function SignInForm() {
   const navigate = useNavigate();
+  const { checkAuth } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
   const emailRef = useRef(null);
@@ -30,12 +32,15 @@ export default function SignInForm() {
         email,
         password,
       })
-      .then(() => {
+      .then((response) => {
+        // Cookie is automatically set by the server
+        console.log("Sign in successful:", response.data.message);
+        // Refresh auth context
+        checkAuth();
         navigate("/");
       })
       .catch((error) => {
         console.error("Sign-in error:", error);
-        console.error("Something went wrong");
       })
       .finally(() => {
         setIsLoading(false);

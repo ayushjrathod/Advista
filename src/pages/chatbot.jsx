@@ -1,12 +1,14 @@
 import SmokeSceneComponent from "@/components/landing/SmokeScreenComponent";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 
-import { Bot, User } from "lucide-react";
+import { Bot, Home, LogOut, User } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { useParams, useSearchParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 
 export default function ChatBot() {
+  const { user, logout } = useAuth();
   const [searchParams] = useSearchParams();
   const params = useParams();
   const initialMessage = searchParams.get("input") || params.initialMessage || "";
@@ -97,18 +99,13 @@ export default function ChatBot() {
       setIsLoading(true);
       const botId = Date.now() + 1;
 
-      const token =
-        typeof localStorage !== "undefined"
-          ? localStorage.getItem("token") || localStorage.getItem("access_token")
-          : null;
-
       const res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/api/v1/chat/stream`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Accept: "text/event-stream",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
+        credentials: "include", // Include cookies
         body: JSON.stringify({ thread_id: tid, message }),
       });
 
@@ -197,6 +194,25 @@ export default function ChatBot() {
 
   return (
     <div className="flex flex-col h-screen bg-black text-white">
+      {/* Navbar */}
+      <div className="flex items-center justify-between p-4 border-b border-zinc-800">
+        <Link to="/" className="flex items-center space-x-2 text-white hover:text-zinc-300">
+          <Home size={20} />
+          <span className="font-semibold">Advista</span>
+        </Link>
+
+        <div className="flex items-center space-x-4">
+          <span className="text-sm text-zinc-400">{user?.email}</span>
+          <button
+            onClick={logout}
+            className="flex items-center space-x-2 px-3 py-2 rounded-lg border border-zinc-700 hover:bg-zinc-800 transition-colors"
+          >
+            <LogOut size={16} />
+            <span>Logout</span>
+          </button>
+        </div>
+      </div>
+
       <SmokeSceneComponent />
       <ScrollArea className="z-10 h-screen flex-1 px-4 py-6 overflow-y-auto">
         <div className="max-w-4xl bg-gradient-to-r p-2 rounded-xl mx-auto space-y-4">
