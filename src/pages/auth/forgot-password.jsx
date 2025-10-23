@@ -3,8 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import api from "@/lib/api";
+import { handleApiError } from "@/lib/auth-utils";
 import { Loader2 } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 export default function ForgotPasswordForm() {
@@ -15,12 +16,19 @@ export default function ForgotPasswordForm() {
 
   const emailRef = useRef(null);
 
+  // Auto-focus first input on mount
+  useEffect(() => {
+    if (emailRef.current) {
+      emailRef.current.focus();
+    }
+  }, []);
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     const email = emailRef.current?.value || "";
 
     if (!email) {
-      console.error("Please enter your email address.");
+      alert("Please enter your email address.");
       return;
     }
 
@@ -32,15 +40,7 @@ export default function ForgotPasswordForm() {
       setUserEmail(email);
       setIsEmailSent(true);
     } catch (error) {
-      if (api.isAxiosError(error) && error.response) {
-        const errorMessage =
-          error.response.data.detail || error.response.data.message || "An error occurred. Please try again.";
-        console.error("Forgot password error:", errorMessage);
-        alert(errorMessage);
-      } else {
-        console.error("Error:", "An unexpected error occurred. Please try again.");
-        alert("An unexpected error occurred. Please try again.");
-      }
+      handleApiError(error, "Failed to send reset code. Please try again.", false);
     } finally {
       setIsLoading(false);
     }
@@ -68,7 +68,7 @@ export default function ForgotPasswordForm() {
           </div>
           <Button
             onClick={() => navigate(`/reset-password/${userEmail}`)}
-            className="w-full rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-[0_25px_80px_-45px_rgba(59,130,246,0.95)]"
+            className="w-full rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-[0_25px_80px_-45px_rgba(59,130,246,0.95)] cursor-pointer"
           >
             Enter Reset Code
           </Button>
@@ -90,7 +90,7 @@ export default function ForgotPasswordForm() {
         </p>
       }
     >
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6" role="form" aria-label="Forgot password form">
         <div className="space-y-2 text-left">
           <Label htmlFor="email" className="text-sm font-semibold text-white">
             Email
@@ -102,10 +102,15 @@ export default function ForgotPasswordForm() {
             autoComplete="email"
             placeholder="you@example.com"
             className="rounded-lg border-white/10 bg-slate-950/60 text-white placeholder:text-slate-400/80 focus-visible:border-sky-400/70 focus-visible:ring-sky-400/60 focus-visible:ring-offset-0"
+            disabled={isLoading}
+            aria-describedby="forgot-password-help"
           />
         </div>
+        <div id="forgot-password-help" className="sr-only">
+          Enter your email address to receive a password reset code.
+        </div>
         <Button
-          className="w-full rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-[0_25px_80px_-45px_rgba(59,130,246,0.95)]"
+          className="w-full rounded-lg bg-primary/90 text-primary-foreground shadow-[0_25px_80px_-45px_rgba(59,130,246,0.95)] cursor-pointer"
           type="submit"
           disabled={isLoading}
         >

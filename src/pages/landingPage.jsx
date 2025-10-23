@@ -2,6 +2,7 @@ import { About } from "@/components/landing/About";
 import { FloatingNav } from "@/components/landing/floating-navbar";
 import HeroButton from "@/components/landing/HeroButton";
 import SplineComponent from "@/components/landing/SplineComponent";
+import { MaintenanceBanner } from "@/components/ui/maintenance-banner";
 import { Spotlight } from "@/components/ui/spotlight-new";
 import { HomeIcon } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -15,6 +16,7 @@ export default function LandingPage() {
 
   return (
     <div className="relative min-h-screen bg-black">
+      <MaintenanceBanner />
       <FloatingNav className="" navItems={navItems} />
       {/* <SmokeSceneComponent /> */}
       <main className="relative min-h-screen flex items-center bg-transparent">
@@ -26,7 +28,7 @@ export default function LandingPage() {
               AI-powered research. Human-centered insights
             </p>
             <div className="flex flex-col">
-              <Link to="/chat?input=hello">
+              <Link to="/chat">
                 <HeroButton />
               </Link>
             </div>

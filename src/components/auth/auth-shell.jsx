@@ -34,8 +34,8 @@ export function AuthShell({ title, description, children, footer, contentClassNa
           />
           <CardHeader className="relative z-10 space-y-2 text-center">
             <Link
-              href="/"
-              className="mx-auto inline-flex items-center justify-center rounded-full  px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-white"
+              to="/"
+              className="mx-auto inline-flex items-center justify-center rounded-full px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-white hover:text-sky-300 transition-colors cursor-pointer"
             >
               Advista
             </Link>

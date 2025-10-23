@@ -44,7 +44,7 @@ export const Spotlight = ({
           className={`absolute top-0 left-0 origin-top-left`}
         />
       </div>
-      <div className="absolute top-0 right-0 w-screen h-screen z-40 pointer-events-none">
+      <div className="absolute top-0 right-0 w-screen h-screen z-40 pointer-events-none overflow-hidden">
         <div
           style={{
             transform: `translateY(${translateY}px) rotate(45deg)`,

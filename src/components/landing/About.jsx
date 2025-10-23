@@ -1,62 +1,63 @@
-import { WobbleCard } from "@/components/ui/wobble-card";
-import { Image } from "lucide-react";
+"use client";
+import { GlowingEffect } from "@/components/ui/glowing-effect";
+import { Box, Lock, Search, Settings, Sparkles } from "lucide-react";
 
 export function About() {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 max-w-7xl mx-auto w-full">
-      <WobbleCard
-        containerClassName="col-span-1 lg:col-span-2 h-full bg-[#2b2538] min-h-[500px] lg:min-h-[300px]"
-        className=""
-      >
-        <div className="max-w-xs">
-          <h2 className="text-left text-balance text-base md:text-xl lg:text-3xl font-semibold tracking-[-0.015em] text-white">
-            Research Automation Engine
-          </h2>
-          <p className="mt-4 text-left  text-base/6 text-neutral-200">
-            Streamline your research with automated data scraping and aggregation from platforms like Google, YouTube,
-            Reddit, Quora, and app reviews. Gain instant insights into competitor ads and audience sentiments using
-            real-time analysis powered by AI. Identify trending topics and pain points effortlessly, saving countless
-            hours of manual work.
-          </p>
-        </div>
-        <Image
-          src="/test.png"
-          width={500}
-          height={500}
-          alt="linear demo image"
-          className="absolute -right-4 lg:-right-[40%] grayscale filter -bottom-10 object-contain rounded-2xl"
-        />
-      </WobbleCard>
-      <WobbleCard containerClassName="col-span-1 min-h-[300px] bg-[#33069b]">
-        <h2 className="max-w-80  text-left text-balance text-base md:text-xl lg:text-3xl font-semibold tracking-[-0.015em] text-white">
-          Smart Insight Generator
-        </h2>
-        <p className="mt-4 max-w-[26rem] text-left  text-base/6 text-neutral-200">
-          Transform raw data into actionable insights with advanced pattern recognition and analysis. Discover
-          high-performing hooks, CTAs, and content formats from competitor strategies. Dive deep into user motivations
-          with detailed trigger maps, and receive tailored recommendations for crafting impactful ad messaging.
-        </p>
-      </WobbleCard>
-      <WobbleCard containerClassName="col-span-1 lg:col-span-3 bg-[#33069b] min-h-[500px] lg:min-h-[600px] xl:min-h-[300px]">
-        <div className="max-w-sm">
-          <h2 className="max-w-sm md:max-w-lg  text-left text-balance text-base md:text-xl lg:text-3xl font-semibold tracking-[-0.015em] text-white">
-            Visual Intelligence Dashboard
-          </h2>
-          <p className="mt-4 max-w-[26rem] text-left  text-base/6 text-neutral-200">
-            Experience your insights visually with interactive graphs, word clouds, and sentiment analysis tools.
-            Navigate research findings in an intuitive dashboard that includes a curated library of competitor ads and
-            reference materials. Collaborate seamlessly with your team and access direct links to original sources for
-            deeper exploration
-          </p>
-        </div>
-        <Image
-          src="/test.png"
-          width={500}
-          height={500}
-          alt="linear demo image"
-          className="absolute -right-10 md:-right-[40%] lg:-right-[20%] -bottom-10 object-contain rounded-2xl"
-        />
-      </WobbleCard>
-    </div>
+    <ul className="grid grid-cols-1 grid-rows-none gap-4 md:grid-cols-12 md:grid-rows-3 lg:gap-4 xl:max-h-[34rem] xl:grid-rows-2">
+      <GridItem
+        area="md:[grid-area:1/1/2/7] xl:[grid-area:1/1/2/5]"
+        icon={<Box className="h-4 w-4 text-neutral-400" />}
+        title="Research Automation Engine"
+        description="Streamline research with automated data scraping from Google, YouTube, Reddit, Quora, and app reviews. Gain instant insights into competitor ads and audience sentiments using AI-powered real-time analysis."
+      />
+      <GridItem
+        area="md:[grid-area:1/7/2/13] xl:[grid-area:2/1/3/5]"
+        icon={<Settings className="h-4 w-4 text-neutral-400" />}
+        title="Smart Insight Generator"
+        description="Transform raw data into actionable insights with advanced pattern recognition. Discover high-performing hooks, CTAs, and content formats from competitor strategies with detailed trigger maps and tailored recommendations."
+      />
+      <GridItem
+        area="md:[grid-area:2/1/3/7] xl:[grid-area:1/5/3/8]"
+        icon={<Lock className="h-4 w-4 text-neutral-400" />}
+        title="Visual Intelligence Dashboard"
+        description="Experience insights visually with interactive graphs, word clouds, and sentiment analysis. Navigate findings in an intuitive dashboard with curated competitor ads and seamless team collaboration."
+      />
+      <GridItem
+        area="md:[grid-area:2/7/3/13] xl:[grid-area:1/8/2/13]"
+        icon={<Sparkles className="h-4 w-4 text-neutral-400" />}
+        title="AI-Powered Analysis"
+        description="Leverage cutting-edge AI to identify trending topics and pain points effortlessly. Save countless hours of manual work with intelligent pattern recognition and automated competitor intelligence."
+      />
+      <GridItem
+        area="md:[grid-area:3/1/4/13] xl:[grid-area:2/8/3/13]"
+        icon={<Search className="h-4 w-4 text-neutral-400" />}
+        title="Competitive Intelligence"
+        description="Access direct links to original sources for deeper exploration. Build a comprehensive library of competitor strategies and reference materials to stay ahead of market trends."
+      />
+    </ul>
   );
 }
+
+const GridItem = ({ area, icon, title, description }) => {
+  return (
+    <li className={`min-h-[14rem] list-none ${area}`}>
+      <div className="relative h-full rounded-2xl border p-2 md:rounded-3xl md:p-3">
+        <GlowingEffect spread={40} glow={true} disabled={false} proximity={64} inactiveZone={0.01} />
+        <div className="border-0.75 relative flex h-full flex-col justify-between gap-6 overflow-hidden rounded-xl p-6 md:p-6 shadow-[0px_0px_27px_0px_#2D2D2D]">
+          <div className="relative flex flex-1 flex-col justify-between gap-3">
+            <div className="w-fit rounded-lg border border-gray-600 p-2">{icon}</div>
+            <div className="space-y-3">
+              <h3 className="-tracking-4 pt-0.5 font-sans text-xl/[1.375rem] font-semibold text-balance text-white md:text-2xl/[1.875rem]">
+                {title}
+              </h3>
+              <h2 className="font-sans text-sm/[1.125rem] text-neutral-400 md:text-base/[1.375rem] [&_b]:md:font-semibold [&_strong]:md:font-semibold">
+                {description}
+              </h2>
+            </div>
+          </div>
+        </div>
+      </div>
+    </li>
+  );
+};
