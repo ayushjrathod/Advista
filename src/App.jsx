@@ -1,5 +1,6 @@
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
+import AboutPage from "./pages/about";
 import ForgotPasswordForm from "./pages/auth/forgot-password";
 import ResetPasswordForm from "./pages/auth/reset-password";
 import SignInForm from "./pages/auth/signin";
@@ -14,6 +15,7 @@ function App() {
       <Router>
         <Routes>
           <Route path="/" element={<LandingPage />} />
+          <Route path="/about" element={<AboutPage />} />
           <Route path="/sign-in" element={<SignInForm />} />
           <Route path="/sign-up" element={<SignUpForm />} />
           <Route path="/verify/:email" element={<VerifyAccount />} />

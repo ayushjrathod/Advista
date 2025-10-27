@@ -4,14 +4,14 @@ import HeroButton from "@/components/landing/HeroButton";
 import SplineComponent from "@/components/landing/SplineComponent";
 import { MaintenanceBanner } from "@/components/ui/maintenance-banner";
 import { Spotlight } from "@/components/ui/spotlight-new";
-import { HomeIcon } from "lucide-react";
+import { HomeIcon, MessageSquare } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export default function LandingPage() {
   const navItems = [
     { name: "Home", link: "/", icon: <HomeIcon /> },
     { name: "About", link: "/about" },
-    { name: "Contact", link: "/" },
+    { name: "Chat", link: "/chat", icon: <MessageSquare /> },
   ];
 
   return (

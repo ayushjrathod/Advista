@@ -1,23 +1,17 @@
 import SmokeSceneComponent from "@/components/landing/SmokeScreenComponent";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
-
-import { Bot, Home, LogOut, User } from "lucide-react";
+import { Bot, User } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { Link, useParams, useSearchParams } from "react-router-dom";
 
 export default function ChatBot() {
-  const { user, logout } = useAuth();
-  const [searchParams] = useSearchParams();
-  const params = useParams();
-  const initialMessage = searchParams.get("input") || params.initialMessage || "";
-
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [threadId, setThreadId] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
+  const [researchBrief, setResearchBrief] = useState(null);
+  const [showBriefPreview, setShowBriefPreview] = useState(false);
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -49,7 +43,7 @@ export default function ChatBot() {
           {
             id: Date.now(),
             role: "bot",
-            content: "Hi! I’m Advista Research Assistant. Please share details of your product or service?",
+            content: "Hi! I'm Advista Research Assistant. I'll ask you a few quick questions to create your advertising research brief. What product or service would you like to advertise?",
           },
         ]);
         // Generate a thread id for streaming conversations
@@ -58,12 +52,6 @@ export default function ChatBot() {
             ? crypto.randomUUID()
             : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
         setThreadId(tid);
-
-        if (initialMessage) {
-          // Prefill input with the initial message but do not call the API yet
-          // The API call should happen only after the user explicitly sends the first message
-          setInput(initialMessage);
-        }
       } catch (error) {
         console.error("Error initializing chat:", error);
         setErrorMessage("Something went wrong while starting the chat. Please try again.");
@@ -73,7 +61,7 @@ export default function ChatBot() {
     };
 
     initializeChat();
-  }, [initialMessage]);
+  }, []);
 
   const sendUserMessage = async (message) => {
     if (!threadId) {
@@ -92,6 +80,57 @@ export default function ChatBot() {
 
     setErrorMessage(null);
     await sendStreamingMessage(message, threadId);
+  };
+
+  const fetchResearchBrief = async (tid) => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/api/v1/chat/research-brief/${tid}`, {
+        credentials: "include",
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setResearchBrief(data);
+        // Show preview if brief is complete or has significant progress
+        if (data.is_complete || data.completion_percentage > 60) {
+          setShowBriefPreview(true);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching research brief:", error);
+    }
+  };
+
+  const handleConfirmBrief = async () => {
+    if (!researchBrief?.brief) return;
+
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/api/v1/chat/start-research`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ research_brief: researchBrief.brief }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now(),
+            role: "bot",
+            content: `✅ ${data.message} I'll now begin analyzing your product and market. This may take a few moments...`,
+          },
+        ]);
+        setShowBriefPreview(false);
+      } else {
+        throw new Error("Failed to start research");
+      }
+    } catch (error) {
+      console.error("Error starting research:", error);
+      setErrorMessage("Failed to start research. Please try again.");
+    }
   };
 
   const sendStreamingMessage = async (message, tid) => {
@@ -169,6 +208,9 @@ export default function ChatBot() {
       if (!botMessageAdded) {
         setIsLoading(false);
       }
+
+      // After message is complete, fetch updated research brief
+      await fetchResearchBrief(tid);
     } catch (error) {
       console.error("Streaming error:", error);
       setErrorMessage("There was a problem streaming the response. Please try again.");
@@ -194,26 +236,107 @@ export default function ChatBot() {
 
   return (
     <div className="flex flex-col h-screen bg-black text-white">
-      {/* Navbar */}
-      <div className="flex items-center justify-between p-4 border-b border-zinc-800">
-        <Link to="/" className="flex items-center space-x-2 text-white hover:text-zinc-300">
-          <Home size={20} />
-          <span className="font-semibold">Advista</span>
-        </Link>
-
-        <div className="flex items-center space-x-4">
-          <span className="text-sm text-zinc-400">{user?.email}</span>
-          <button
-            onClick={logout}
-            className="flex items-center space-x-2 px-3 py-2 rounded-lg border border-zinc-700 hover:bg-zinc-800 transition-colors"
-          >
-            <LogOut size={16} />
-            <span>Logout</span>
-          </button>
-        </div>
-      </div>
-
       <SmokeSceneComponent />
+      
+      {/* Toggle Button when brief is hidden */}
+      {!showBriefPreview && researchBrief && researchBrief.completion_percentage > 0 && (
+        <button
+          onClick={() => setShowBriefPreview(true)}
+          className="fixed top-4 right-4 z-50 bg-violet-600/90 hover:bg-violet-500 backdrop-blur-sm text-white font-medium py-2 px-4 rounded-lg transition-colors shadow-lg flex items-center gap-2"
+        >
+          📋 Show Brief ({Math.round(researchBrief.completion_percentage)}%)
+        </button>
+      )}
+      
+      {/* Fixed Floating Research Brief Summary */}
+      {showBriefPreview && researchBrief && (
+        <div className="fixed top-4 right-4 z-50 w-96 max-h-[80vh] overflow-y-auto">
+          <div className="border border-violet-600/50 bg-gradient-to-br from-violet-950/95 to-zinc-900/95 backdrop-blur-md rounded-2xl p-6 shadow-2xl">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-violet-300">📋 Research Brief</h3>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-zinc-400">{Math.round(researchBrief.completion_percentage)}%</span>
+                <button
+                  onClick={() => setShowBriefPreview(false)}
+                  className="text-zinc-400 hover:text-white transition-colors"
+                  title="Hide preview"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+            
+            <div className="space-y-2 text-sm">
+              {researchBrief.brief.product_name && (
+                <div>
+                  <span className="text-zinc-400 text-xs">Product:</span>
+                  <p className="text-white">{researchBrief.brief.product_name}</p>
+                </div>
+              )}
+              {researchBrief.brief.product_description && (
+                <div>
+                  <span className="text-zinc-400 text-xs">Description:</span>
+                  <p className="text-white">{researchBrief.brief.product_description}</p>
+                </div>
+              )}
+              {researchBrief.brief.target_audience && (
+                <div>
+                  <span className="text-zinc-400 text-xs">Target Audience:</span>
+                  <p className="text-white">{researchBrief.brief.target_audience}</p>
+                </div>
+              )}
+              {researchBrief.brief.campaign_goals && (
+                <div>
+                  <span className="text-zinc-400 text-xs">Goals:</span>
+                  <p className="text-white">{researchBrief.brief.campaign_goals}</p>
+                </div>
+              )}
+              {researchBrief.brief.competitor_names?.length > 0 && (
+                <div>
+                  <span className="text-zinc-400 text-xs">Competitors:</span>
+                  <p className="text-white">{researchBrief.brief.competitor_names.join(", ")}</p>
+                </div>
+              )}
+              {researchBrief.brief.budget_range && (
+                <div>
+                  <span className="text-zinc-400 text-xs">Budget:</span>
+                  <p className="text-white">{researchBrief.brief.budget_range}</p>
+                </div>
+              )}
+              {researchBrief.brief.preferred_platforms?.length > 0 && (
+                <div>
+                  <span className="text-zinc-400 text-xs">Platforms:</span>
+                  <p className="text-white">{researchBrief.brief.preferred_platforms.join(", ")}</p>
+                </div>
+              )}
+              {researchBrief.brief.tone_and_style && (
+                <div>
+                  <span className="text-zinc-400 text-xs">Tone & Style:</span>
+                  <p className="text-white">{researchBrief.brief.tone_and_style}</p>
+                </div>
+              )}
+              {researchBrief.brief.timeline && (
+                <div>
+                  <span className="text-zinc-400 text-xs">Timeline:</span>
+                  <p className="text-white">{researchBrief.brief.timeline}</p>
+                </div>
+              )}
+            </div>
+
+            {(researchBrief.is_complete || researchBrief.completion_percentage >= 70) && (
+              <div className="mt-4 flex flex-col gap-2">
+                <button
+                  onClick={handleConfirmBrief}
+                  className="w-full bg-violet-600 hover:bg-violet-500 text-white font-medium py-2.5 px-4 rounded-lg transition-colors shadow-lg"
+                >
+                  ✓ Confirm & Start Research
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+      
       <ScrollArea className="z-10 h-screen flex-1 px-4 py-6 overflow-y-auto">
         <div className="max-w-4xl bg-gradient-to-r p-2 rounded-xl mx-auto space-y-4">
           {messages.map((m) => (
