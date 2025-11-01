@@ -46,7 +46,3 @@ export function PasswordStrengthIndicator({ password, className }) {
     </div>
   );
 }
-
-
-
-

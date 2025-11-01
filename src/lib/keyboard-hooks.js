@@ -48,7 +48,3 @@ export const useEscapeKey = (onEscape, isEnabled = true) => {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [onEscape, isEnabled]);
 };
-
-
-
-

@@ -43,7 +43,8 @@ export default function ChatBot() {
           {
             id: Date.now(),
             role: "bot",
-            content: "Hi! I'm Advista Research Assistant. I'll ask you a few quick questions to create your advertising research brief. What product or service would you like to advertise?",
+            content:
+              "Hi! I'm Advista Research Assistant. I'll ask you a few quick questions to create your advertising research brief. What product or service would you like to advertise?",
           },
         ]);
         // Generate a thread id for streaming conversations
@@ -84,14 +85,17 @@ export default function ChatBot() {
 
   const fetchResearchBrief = async (tid) => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/api/v1/chat/research-brief/${tid}`, {
-        credentials: "include",
-      });
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/api/v1/chat/research-brief/${tid}`,
+        {
+          credentials: "include",
+        }
+      );
       if (res.ok) {
         const data = await res.json();
         setResearchBrief(data);
-        // Show preview if brief is complete or has significant progress
-        if (data.is_complete || data.completion_percentage > 60) {
+        // Show preview if brief has any progress at all
+        if (data.is_complete || data.completion_percentage > 0) {
           setShowBriefPreview(true);
         }
       }
@@ -237,35 +241,35 @@ export default function ChatBot() {
   return (
     <div className="flex flex-col h-screen bg-black text-white">
       <SmokeSceneComponent />
-      
+
       {/* Toggle Button when brief is hidden */}
-      {!showBriefPreview && researchBrief && researchBrief.completion_percentage > 0 && (
+      {!showBriefPreview && researchBrief && (
         <button
           onClick={() => setShowBriefPreview(true)}
-          className="fixed top-4 right-4 z-50 bg-violet-600/90 hover:bg-violet-500 backdrop-blur-sm text-white font-medium py-2 px-4 rounded-lg transition-colors shadow-lg flex items-center gap-2"
+          className="fixed top-4 right-4 z-50 bg-gradient-to-br from-violet-900/60 to-zinc-800/50 backdrop-blur-sm text-white font-medium py-2 px-4 rounded-lg transition-colors shadow-lg flex items-center gap-2 cursor-pointer"
         >
           📋 Show Brief ({Math.round(researchBrief.completion_percentage)}%)
         </button>
       )}
-      
+
       {/* Fixed Floating Research Brief Summary */}
       {showBriefPreview && researchBrief && (
         <div className="fixed top-4 right-4 z-50 w-96 max-h-[80vh] overflow-y-auto">
-          <div className="border border-violet-600/50 bg-gradient-to-br from-violet-950/95 to-zinc-900/95 backdrop-blur-md rounded-2xl p-6 shadow-2xl">
+          <div className="border border-violet-600/50 bg-gradient-to-br from-violet-950/10 to-zinc-900/10 backdrop-blur-md rounded-2xl p-6 shadow-2xl">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-violet-300">📋 Research Brief</h3>
+              <h3 className="text-lg font-semibold text-violet-400">📋 Research Brief</h3>
               <div className="flex items-center gap-2">
                 <span className="text-xs text-zinc-400">{Math.round(researchBrief.completion_percentage)}%</span>
                 <button
                   onClick={() => setShowBriefPreview(false)}
-                  className="text-zinc-400 hover:text-white transition-colors"
+                  className="text-zinc-400 hover:text-white transition-colors cursor-pointer"
                   title="Hide preview"
                 >
                   ✕
                 </button>
               </div>
             </div>
-            
+
             <div className="space-y-2 text-sm">
               {researchBrief.brief.product_name && (
                 <div>
@@ -327,7 +331,7 @@ export default function ChatBot() {
               <div className="mt-4 flex flex-col gap-2">
                 <button
                   onClick={handleConfirmBrief}
-                  className="w-full bg-violet-600 hover:bg-violet-500 text-white font-medium py-2.5 px-4 rounded-lg transition-colors shadow-lg"
+                  className="w-full bg-gradient-to-br from-violet-950/35 to-zinc-900/35 text-white font-medium py-2.5 px-4 rounded-lg transition-colors shadow-lg cursor-pointer"
                 >
                   ✓ Confirm & Start Research
                 </button>
@@ -336,7 +340,7 @@ export default function ChatBot() {
           </div>
         </div>
       )}
-      
+
       <ScrollArea className="z-10 h-screen flex-1 px-4 py-6 overflow-y-auto">
         <div className="max-w-4xl bg-gradient-to-r p-2 rounded-xl mx-auto space-y-4">
           {messages.map((m) => (
