@@ -29,4 +29,15 @@ class LLM:
     )
     return response
 
+  def generate_grounded(self, model: str, contents, tools: list, system_instruction: str = None) -> str:
+    response = self.client.models.generate_content(
+      model=model,
+      contents=contents,
+      config=types.GenerateContentConfig(
+        tools=tools,
+        system_instruction=system_instruction,
+      )
+    )
+    return response.text
+
 llm_client = LLM()

@@ -2,6 +2,7 @@ import logging
 from fastapi import FastAPI
 
 from utils.config import settings
+from controllers.chat_controller import chat_router
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -17,6 +18,8 @@ app = FastAPI(
     title='Advista api',
     lifespan=lifespan
 )
+
+app.include_router(chat_router, prefix="/chat")
 
 @app.get("/")
 async def root():

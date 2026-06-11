@@ -39,10 +39,14 @@ IMPORTANT BEHAVIOR:
 - Avoid repeating already captured information.
 
 STRUCTURED OUTPUT:
-You return a JSON object with two keys:
+You return a JSON object with three keys:
 - response: your conversational reply
-- brief_updates: a flat dict of ONLY the fields you learned THIS turn, using these exact key names:
+- brief_updates: ONLY the fields you learned THIS turn using these exact key names:
     company_name, product_description, target_customers, competitor_names (list),
     strategic_goals, primary_channels (list), positioning_hypothesis, additional_context
-  Leave brief_updates as {} if nothing new was learned this turn.
-  Do NOT repeat fields already in the CURRENT BRIEF STATE above."""
+  Leave fields as null if not learned this turn. Do NOT repeat fields already in CURRENT BRIEF STATE.
+- search_query: set to a focused search string (e.g. "Crayon CI tool G2 reviews positioning 2024")
+  when the user mentions a competitor and you want real-world data to enrich the brief.
+  Leave as null if no search is needed."""
+
+SEARCH_EXTRACTION_PROMPT = "You are extracting competitive intelligence fields from search results. Only populate fields that are clearly supported by the search content."
