@@ -3,6 +3,7 @@ from fastapi import FastAPI
 
 from utils.config import settings
 from controllers.chat_controller import chat_router
+from controllers.research_controller import research_router
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -20,6 +21,7 @@ app = FastAPI(
 )
 
 app.include_router(chat_router, prefix="/chat")
+app.include_router(research_router, prefix="/research")
 
 @app.get("/")
 async def root():

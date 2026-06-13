@@ -4,9 +4,8 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 from starlette.responses import StreamingResponse
 
-from api.src.models.search_params import SearchParams
-from api.src.services import chat_service
-from api.src.services.research_service import research_service
+from services.chat_service import chat_service
+from services.research_service import research_service
 
 
 logger = logging.getLogger(__name__)
@@ -27,15 +26,33 @@ async def start_research(request: ResearchRequest):
 
 async def _research_stream(session_id: str):
     yield "Starting research process...\n"
-    
+
     # get current brief state
     current_brief = chat_service.get_brief(session_id)
-    
-    # generate search queries
-    yield "Getting Research Queries...\n"
-    search_params: SearchParams = await research_service.create_research_query(current_brief, session_id)
 
-    # call serpapi with each query 
-    # process the results 
-    # clean up 
-    # can do rag on it and then generate queies and then pass it to llm or this might be overkill and pass everything to llm or there might be something elsse entierly that we can do with the results to get the insights we need.
+    # generate search queries
+    yield "Getting research queries...\n"
+    search_params = await research_service.create_research_query(current_brief, session_id)
+
+    # fan out SerpAPI searches
+    yield "Running searches...\n"
+    hits_by_category = await research_service.run_searches(search_params)
+    total_hits = sum(len(h) for h in hits_by_category.values())
+    yield f"Found {total_hits} results across {len(hits_by_category)} categories.\n"
+
+    # scrape the top pages per category
+    yield "Scraping sources...\n"
+    docs_by_category = await research_service.scrape_sources(hits_by_category)
+    total_docs = sum(len(d) for d in docs_by_category.values())
+    yield f"Scraped {total_docs} pages.\n"
+
+    # MAP: synthesize each category in parallel
+    yield "Analyzing categories...\n"
+    insights = await research_service.synthesize_categories(current_brief, docs_by_category)
+    yield f"Produced {len(insights)} category insights.\n"
+
+    # REDUCE: combine into the final report
+    yield "Synthesizing report...\n"
+    report = await research_service.synthesize_report(current_brief, insights)
+
+    yield report.model_dump_json()
