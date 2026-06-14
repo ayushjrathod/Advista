@@ -4,16 +4,17 @@ from fastapi import FastAPI
 from utils.config import settings
 from controllers.chat_controller import chat_router
 from controllers.research_controller import research_router
+from services.database_service import db
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 async def lifespan(app: FastAPI):
     logger.info("Starting up the application...")
-    # Perform any startup tasks here
+    await db.connect()
     yield
     logger.info("Shutting down the application...")
-    # Perform any shutdown tasks here
+    await db.disconnect()
     
 app = FastAPI(
     title='Advista api',

@@ -24,8 +24,8 @@ class PrefillRequest(BaseModel):
 @chat_router.post("/message")
 async def send_message(request: ChatRequest):
     session_id = request.session_id or str(uuid.uuid4())
-    turn = chat_service.chat(session_id, request.user_message)
-    brief = chat_service.get_brief(session_id)
+    turn = await chat_service.chat(session_id, request.user_message)
+    brief = await chat_service.get_brief(session_id)
     return {
         "session_id": session_id,
         "response": turn.response,
@@ -38,7 +38,7 @@ async def send_message(request: ChatRequest):
 async def prefill_from_url(request: PrefillRequest):
     session_id = request.session_id or str(uuid.uuid4())
     brief = extract_brief_from_url(request.url)
-    chat_service.set_brief(session_id, brief)
+    await chat_service.set_brief(session_id, brief)
     return {
         "session_id": session_id,
         "brief": brief.model_dump(),

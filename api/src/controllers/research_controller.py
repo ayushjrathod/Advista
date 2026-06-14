@@ -1,58 +1,86 @@
 import logging
+from datetime import datetime, timezone
 
 from fastapi import APIRouter
+from prisma import Json
+from prisma.enums import ResearchRunStatus
 from pydantic import BaseModel
 from starlette.responses import StreamingResponse
 
 from services.chat_service import chat_service
 from services.research_service import research_service
-
+from services.database_service import db
 
 logger = logging.getLogger(__name__)
 
 research_router = APIRouter()
 
+
 class ResearchRequest(BaseModel):
-  session_id: str
+    session_id: str
+
+
+def _sse(data: str, event: str) -> str:
+    return f"event: {event}\ndata: {data}\n\n"
 
 
 @research_router.post("/start-research")
 async def start_research(request: ResearchRequest):
     return StreamingResponse(
-      _research_stream(request.session_id),
-      media_type="text/event-stream"
+        _research_stream(request.session_id),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )
 
 
 async def _research_stream(session_id: str):
-    yield "Starting research process...\n"
+    run = None
+    try:
+        brief = await chat_service.get_brief(session_id)
 
-    # get current brief state
-    current_brief = chat_service.get_brief(session_id)
+        run = await db.prisma.researchrun.create(
+            data={
+                "session_id": session_id,
+                "status": ResearchRunStatus.RUNNING,
+                "brief_snapshot": Json(brief.model_dump()),
+                "started_at": datetime.now(timezone.utc),
+            }
+        )
 
-    # generate search queries
-    yield "Getting research queries...\n"
-    search_params = await research_service.create_research_query(current_brief, session_id)
+        yield _sse("Generating search queries...", "progress")
+        search_params = await research_service.create_research_query(brief, session_id)
+        await db.prisma.researchrun.update(
+            where={"id": run.id},
+            data={"search_params": Json(search_params.model_dump())},
+        )
 
-    # fan out SerpAPI searches
-    yield "Running searches...\n"
-    hits_by_category = await research_service.run_searches(search_params)
-    total_hits = sum(len(h) for h in hits_by_category.values())
-    yield f"Found {total_hits} results across {len(hits_by_category)} categories.\n"
+        yield _sse("Searching the web...", "progress")
+        hits = await research_service.run_searches(search_params)
 
-    # scrape the top pages per category
-    yield "Scraping sources...\n"
-    docs_by_category = await research_service.scrape_sources(hits_by_category)
-    total_docs = sum(len(d) for d in docs_by_category.values())
-    yield f"Scraped {total_docs} pages.\n"
+        yield _sse("Scraping sources...", "progress")
+        docs = await research_service.scrape_sources(hits)
 
-    # MAP: synthesize each category in parallel
-    yield "Analyzing categories...\n"
-    insights = await research_service.synthesize_categories(current_brief, docs_by_category)
-    yield f"Produced {len(insights)} category insights.\n"
+        yield _sse("Analyzing findings...", "progress")
+        insights = await research_service.synthesize_categories(brief, docs)
 
-    # REDUCE: combine into the final report
-    yield "Synthesizing report...\n"
-    report = await research_service.synthesize_report(current_brief, insights)
+        yield _sse("Writing report...", "progress")
+        report = await research_service.synthesize_report(brief, insights)
 
-    yield report.model_dump_json()
+        await db.prisma.report.create(data={**report.model_dump(), "run_id": run.id})
+        await db.prisma.researchrun.update(
+            where={"id": run.id},
+            data={
+                "status": ResearchRunStatus.COMPLETED,
+                "completed_at": datetime.now(timezone.utc),
+            },
+        )
+
+        yield _sse(report.model_dump_json(), "report")
+    except Exception as e:
+        logger.exception("Research stream failed")
+        if run is not None:
+            await db.prisma.researchrun.update(
+                where={"id": run.id},
+                data={"status": ResearchRunStatus.FAILED, "error": str(e)},
+            )
+        yield _sse(str(e), "error")

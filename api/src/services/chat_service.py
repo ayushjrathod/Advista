@@ -1,12 +1,15 @@
+import asyncio
 import logging
 
 from google.genai import types
+from prisma.enums import MessageRole
 from utils.llm import llm_client
 from utils.search import web_search
-from pydantic import BaseModel, Field, ConfigDict, create_model
+from pydantic import BaseModel, Field, create_model
 from typing import Optional, List
 from models.research_brief import ResearchBrief
 from prompts.chatbot import CHATBOT_SYSTEM_PROMPT, SEARCH_EXTRACTION_PROMPT
+from services.database_service import db
 
 logger = logging.getLogger(__name__)
 
@@ -33,78 +36,105 @@ class TurnOutput(BaseModel):
     search_query: Optional[str] = Field(None, description="Set to a search string only when real-world competitor data is needed, otherwise null")
 
 
-
-class Session(BaseModel):
-    model_config = ConfigDict(arbitrary_types_allowed=True)
-
-    memory: list = Field(default_factory=list)
-    brief: ResearchBrief = Field(default_factory=ResearchBrief)
+_BRIEF_FIELDS = list(ResearchBrief.model_fields.keys())
 
 
 class ChatService:
-    def __init__(self):
-        self.sessions: dict[str, Session] = {}
 
-    def _get_session(self, session_id: str) -> Session:
-        if session_id not in self.sessions:
-            self.sessions[session_id] = Session()
-        return self.sessions[session_id]
+    async def _ensure_session(self, session_id: str) -> None:
+        if await db.prisma.session.find_unique(where={'id': session_id}) is None:
+            await db.prisma.session.create(data={'id': session_id})
 
-    def _build_system_prompt(self, session: Session) -> str:
-        brief_json = session.brief.model_dump_json(indent=2)
-        return f"{CHATBOT_SYSTEM_PROMPT}\n\nCURRENT BRIEF STATE:\n{brief_json}"
-
-    def _merge_updates(self, session: Session, updates_model) -> None:
-        updates = updates_model.model_dump(exclude_none=True)
-        if updates:
-            session.brief = session.brief.model_copy(update=updates)
-
-    def chat(self, session_id: str, user_message: str) -> TurnOutput:
-        session = self._get_session(session_id)
-
-        session.memory.append(
+    async def _load_memory(self, session_id: str) -> list[types.Content]:
+        rows = await db.prisma.message.find_many(
+            where={'session_id': session_id},
+            order={'created_at': 'asc'},
+        )
+        return [
             types.Content(
-                role='user',
-                parts=[types.Part.from_text(text=user_message)]
+                role='user' if row.role == MessageRole.USER else 'model',
+                parts=[types.Part.from_text(text=row.content)],
             )
+            for row in rows
+        ]
+
+    async def _load_brief(self, session_id: str) -> ResearchBrief:
+        row = await db.prisma.researchbrief.find_unique(where={'session_id': session_id})
+        if row is None:
+            return ResearchBrief()
+        return ResearchBrief(**{field: getattr(row, field) for field in _BRIEF_FIELDS})
+
+    async def _save_message(self, session_id: str, role: MessageRole, content: str) -> None:
+        await db.prisma.message.create(
+            data={'session_id': session_id, 'role': role, 'content': content},
         )
 
-        response = llm_client.generate_structured(
+    async def _save_brief(self, session_id: str, brief: ResearchBrief) -> None:
+        fields = brief.model_dump()
+        await db.prisma.researchbrief.upsert(
+            where={'session_id': session_id},
+            data={
+                'create': {**fields, 'session_id': session_id},
+                'update': fields,
+            },
+        )
+
+    def _build_system_prompt(self, brief: ResearchBrief) -> str:
+        return f"{CHATBOT_SYSTEM_PROMPT}\n\nCURRENT BRIEF STATE:\n{brief.model_dump_json(indent=2)}"
+
+    def _apply_updates(self, brief: ResearchBrief, updates_model) -> ResearchBrief:
+        updates = updates_model.model_dump(exclude_none=True)
+        return brief.model_copy(update=updates) if updates else brief
+
+    async def chat(self, session_id: str, user_message: str) -> TurnOutput:
+        await self._ensure_session(session_id)
+
+        memory = await self._load_memory(session_id)
+        brief = await self._load_brief(session_id)
+
+        memory.append(
+            types.Content(role='user', parts=[types.Part.from_text(text=user_message)])
+        )
+
+        response = await asyncio.to_thread(
+            llm_client.generate_structured,
             model="gemini-3.1-flash-lite",
-            system_instruction=self._build_system_prompt(session),
-            prompt=session.memory,
-            response_schema=TurnOutput
+            system_instruction=self._build_system_prompt(brief),
+            prompt=memory,
+            response_schema=TurnOutput,
         )
-
         turn_output = TurnOutput.model_validate_json(response.text)
 
-        session.memory.append(
-            types.Content(
-                role='model',
-                parts=[types.Part.from_text(text=turn_output.response)]
-            )
-        )
+        await self._save_message(session_id, MessageRole.USER, user_message)
+        await self._save_message(session_id, MessageRole.MODEL, turn_output.response)
 
-        self._merge_updates(session, turn_output.brief_updates)
+        brief = self._apply_updates(brief, turn_output.brief_updates)
 
         if turn_output.search_query:
-            search_text = web_search(turn_output.search_query)
+            search_text = await asyncio.to_thread(web_search, turn_output.search_query)
 
-            search_extraction = llm_client.generate_structured(
+            search_extraction = await asyncio.to_thread(
+                llm_client.generate_structured,
                 model="gemini-3.1-flash-lite",
                 system_instruction=SEARCH_EXTRACTION_PROMPT,
                 prompt=search_text,
-                response_schema=CompetitorEnrichment
+                response_schema=CompetitorEnrichment,
             )
 
-            self._merge_updates(session, CompetitorEnrichment.model_validate_json(search_extraction.text))
+            brief = self._apply_updates(
+                brief, CompetitorEnrichment.model_validate_json(search_extraction.text)
+            )
+
+        await self._save_brief(session_id, brief)
 
         return turn_output
 
-    def get_brief(self, session_id: str) -> ResearchBrief:
-        return self._get_session(session_id).brief
+    async def get_brief(self, session_id: str) -> ResearchBrief:
+        return await self._load_brief(session_id)
 
-    def set_brief(self, session_id: str, brief: ResearchBrief) -> None:
-        self._get_session(session_id).brief = brief
+    async def set_brief(self, session_id: str, brief: ResearchBrief) -> None:
+        await self._ensure_session(session_id)
+        await self._save_brief(session_id, brief)
+
 
 chat_service = ChatService()
