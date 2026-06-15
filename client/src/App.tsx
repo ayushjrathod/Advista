@@ -1,9 +1,19 @@
+import {Navigate, Route, Routes, BrowserRouter as Router} from "react-router-dom";
+import ChatPage from "./pages/ChatPage";
 
 function App() {
 
   return (
     <>
-  Hello peps
+      <Router>
+        <Routes>
+          <Route path="/" element={<Navigate to="/chat" />} />
+          <Route path="/chat" element={<ChatPage />} />
+          <Route path="/home" element={<div>Home Page</div>} />
+          <Route path="/about" element={<div>About Page</div>} />
+          <Route path="*" element={<div>404 Not Found</div>} />
+        </Routes>
+      </Router>
     </>
   )
 }
