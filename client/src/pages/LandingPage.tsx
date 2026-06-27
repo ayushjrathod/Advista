@@ -2,10 +2,10 @@ import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { FloatingNav } from "@/components/landing/floating-navbar";
 import HeroButton from "@/components/landing/HeroButton";
 import LazyRenderBoundary from "@/components/landing/LazyRenderBoundary";
-import { MessageSquare } from "lucide-react";
 import { Link } from "react-router-dom";
+import { navItems } from "@/lib/nav";
 
-const About = lazy(() => import("@/components/landing/About").then((module) => ({ default: module.About })));
+const About = lazy(() => import("@/components/landing/AboutSection").then((module) => ({ default: module.About })));
 const Footer = lazy(() => import("@/components/landing/Footer").then((module) => ({ default: module.Footer })));
 const Spotlight = lazy(() => import("@/components/ui/spotlight-new").then((module) => ({ default: module.Spotlight })));
 const RubiksCubeScene = lazy(() => import("@/components/landing/RubiksCube"));
@@ -21,10 +21,6 @@ export default function LandingPage() {
   const aboutSectionRef = useRef<HTMLDivElement>(null);
   const footerSectionRef = useRef<HTMLDivElement>(null);
 
-  const navItems = [
-    { name: "Start Run", link: "/chat", icon: <MessageSquare /> },
-    { name: "About", link: "/about" },
-  ];
 
   useEffect(() => {
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
